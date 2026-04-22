@@ -203,7 +203,7 @@ std::vector<IfrQuestion> NativeIfrExtractor::extractQuestions(
                     stringPackages,
                     strings,
                     formSet);
-                question.options = {{0, "Disabled"}, {1, "Enabled"}};
+                question.options = {{0, "Отключено"}, {1, "Включено"}};
                 questions.push_back(std::move(question));
             } else if (opcode == UEFI_IFR_ONE_OF_OPTION_OP && length >= 7 && !optionQuestionStack.empty()) {
                 questions[optionQuestionStack.back()].options.push_back(
@@ -217,7 +217,7 @@ std::vector<IfrQuestion> NativeIfrExtractor::extractQuestions(
     }
 
     if (questions.empty()) {
-        throw std::runtime_error("No IFR questions were found in Setup PE32 module.");
+        throw std::runtime_error("В модуле Setup PE32 не найдены IFR-вопросы.");
     }
 
     return questions;

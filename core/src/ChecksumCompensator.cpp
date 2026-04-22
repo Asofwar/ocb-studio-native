@@ -38,7 +38,7 @@ CheckSums ChecksumCompensator::compute(std::span<const std::uint8_t> data) {
 
 CompensationResult ChecksumCompensator::compensate(std::vector<std::uint8_t>& data, CheckSums target) {
     if (kCompensationOffset + kCompensationSize > data.size()) {
-        throw OcbException("File is too small for the known checksum compensation area.");
+        throw OcbException("Файл слишком мал для известной области компенсации контрольной суммы.");
     }
 
     std::fill(
@@ -52,10 +52,10 @@ CompensationResult ChecksumCompensator::compensate(std::vector<std::uint8_t>& da
 
     auto actual = compute(data);
     if (actual == target) {
-        return {target, actual, "preserved sum8/sum16/sum32"};
+        return {target, actual, "сохранены sum8/sum16/sum32"};
     }
     if (actual.sum16 == target.sum16 && actual.sum32 == target.sum32) {
-        return {target, actual, "preserved sum16/sum32"};
+        return {target, actual, "сохранены sum16/sum32"};
     }
 
     std::fill(
@@ -69,10 +69,10 @@ CompensationResult ChecksumCompensator::compensate(std::vector<std::uint8_t>& da
 
     actual = compute(data);
     if (actual.sum16 == target.sum16) {
-        return {target, actual, "preserved sum16 only"};
+        return {target, actual, "сохранена только sum16"};
     }
 
-    throw OcbException("Could not preserve checksum-style sums.");
+    throw OcbException("Не удалось сохранить суммы в стиле контрольных сумм.");
 }
 
 std::uint8_t ChecksumCompensator::sum8(std::span<const std::uint8_t> data) {

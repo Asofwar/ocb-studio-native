@@ -1,112 +1,112 @@
 # OCB Studio Native
 
 [![CI](https://github.com/Asofwar/ocb-studio-native/actions/workflows/ci.yml/badge.svg)](https://github.com/Asofwar/ocb-studio-native/actions/workflows/ci.yml)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Лицензия: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-Native desktop tooling for inspecting MSI overclocking profile files and mapping them to BIOS IFR setup fields.
+Нативный настольный инструмент для просмотра файлов профилей разгона MSI и сопоставления их с полями BIOS IFR Setup.
 
-## What It Does
+## Что умеет
 
-OCB Studio Native is a C++/Qt desktop application for working with MSI `MsOcFile.ocb` overclocking profiles. It can open an OCB profile, inspect known tuning fields, apply conservative presets, write field values, compensate profile checksums, and enrich the field catalog by extracting IFR setup forms from a BIOS image.
+OCB Studio Native - это настольное приложение на C++/Qt для работы с профилями разгона MSI `MsOcFile.ocb`. Оно может открывать OCB-профиль, показывать известные поля настройки, применять консервативные пресеты, записывать значения полей, компенсировать контрольные суммы профиля и расширять каталог полей, извлекая формы IFR Setup из образа BIOS.
 
-The project is intentionally native: no Electron, no webview, and no runtime shelling out to standalone firmware utilities for the core extraction path. UEFI parsing and IFR extraction are integrated from source and wrapped behind project-local C++ interfaces.
+Проект намеренно сделан нативным: без Electron, без webview и без запуска отдельных firmware-утилит через shell для основного пути извлечения. Разбор UEFI и извлечение IFR интегрированы из исходников и закрыты локальными C++-интерфейсами проекта.
 
-## Intended Users
+## Для кого
 
-This project is for firmware researchers, advanced motherboard tuners, BIOS modding enthusiasts, and developers who need a maintainable C++ base for automating OCB profile edits. It is not a vendor-supported flashing utility and does not flash firmware.
+Проект предназначен для исследователей прошивок, опытных пользователей материнских плат, энтузиастов BIOS-моддинга и разработчиков, которым нужна поддерживаемая C++-база для автоматизации правок OCB-профилей. Это не поддерживаемая производителем утилита прошивки, и она не прошивает firmware.
 
-## Safety Notice
+## Предупреждение о безопасности
 
-Firmware and overclocking configuration changes can make a machine unstable or unbootable. Treat generated profiles as experimental, keep known-good backups, and only use changes you understand. This project provides tooling; it does not guarantee that a particular board, firmware revision, or profile will accept a modified file.
+Изменения firmware и конфигурации разгона могут сделать систему нестабильной или незагружаемой. Считайте сгенерированные профили экспериментальными, храните проверенные резервные копии и применяйте только те изменения, которые понимаете. Проект предоставляет инструменты; он не гарантирует, что конкретная плата, версия firmware или профиль примет измененный файл.
 
-## Key Features
+## Ключевые возможности
 
-- Native Qt Widgets desktop UI.
-- C++20 core library for loading, validating, editing, and saving MSI OCB profiles.
-- Checksum-style compensation for BIOS-accepted OCB output.
-- Built-in field catalog and preset support.
-- BIOS analysis pipeline: UEFI image parsing, Setup PE32 discovery, native IFR question extraction, and IFR-to-OCB field mapping.
-- Vendored source integration for UEFITool engine pieces and Universal IFR extraction logic.
-- CMake-first build with modular `core`, `tools`, `ui`, and `app` targets.
+- Нативный настольный интерфейс Qt Widgets.
+- Библиотека ядра на C++20 для загрузки, проверки, редактирования и сохранения MSI OCB-профилей.
+- Компенсация в стиле контрольной суммы для OCB-файлов, принимаемых BIOS.
+- Встроенный каталог полей и поддержка пресетов.
+- Конвейер анализа BIOS: разбор UEFI-образа, поиск Setup PE32, нативное извлечение IFR-вопросов и сопоставление IFR с OCB-полями.
+- Интеграция исходников фрагментов движка UEFITool и логики Universal IFR Extractor.
+- Сборка через CMake с модульными целями `core`, `tools`, `ui` и `app`.
 
-## Architecture
-
-```text
-app/      Qt application entry point and controller glue
-core/     OCB profile model, field catalog, presets, checksums, BIOS analysis service
-tools/    Source-integrated firmware tooling wrappers
-  ifr/      IFR model, text parser, native IFR extractor
-  uefitool/ UEFI firmware tree parser wrapper over vendored UEFITool source
-ui/       Qt Widgets views and table model
-tests/    Lightweight native test executable
-```
-
-The high-level runtime flow is:
+## Архитектура
 
 ```text
-BIOS image -> UEFITool-backed parser -> Setup PE32 body -> Native IFR extractor
-           -> IFR questions -> Field mapper -> editable OCB field catalog
-
-MsOcFile.ocb -> OCB profile model -> field writes/presets -> checksum compensation -> saved OCB
+app/      точка входа Qt-приложения и связующий контроллер
+core/     модель OCB-профиля, каталог полей, пресеты, контрольные суммы, сервис анализа BIOS
+tools/    обертки над firmware-инструментами, интегрированными из исходников
+  ifr/      модель IFR, текстовый парсер, нативный IFR-экстрактор
+  uefitool/ обертка парсера дерева UEFI firmware поверх vendored-исходников UEFITool
+ui/       представления Qt Widgets и табличная модель
+tests/    легковесный нативный тестовый исполняемый файл
 ```
 
-## Requirements
+Высокоуровневый поток выполнения:
 
-- CMake 3.24 or newer.
-- A C++20-capable compiler:
-  - MSVC 2022 on Windows.
-  - Recent Clang or GCC on Linux.
-  - AppleClang on macOS.
-- Qt 6 Widgets for the desktop UI.
+```text
+Образ BIOS -> парсер на базе UEFITool -> тело Setup PE32 -> нативный IFR-экстрактор
+           -> IFR-вопросы -> сопоставитель полей -> редактируемый каталог OCB-полей
 
-The core/tools build can be compiled without Qt by disabling the UI target.
+MsOcFile.ocb -> модель OCB-профиля -> запись полей/пресеты -> компенсация контрольной суммы -> сохраненный OCB
+```
 
-## Build
+## Требования
 
-### Core and Tools Only
+- CMake 3.24 или новее.
+- Компилятор с поддержкой C++20:
+  - MSVC 2022 на Windows.
+  - Актуальный Clang или GCC на Linux.
+  - AppleClang на macOS.
+- Qt 6 Widgets для настольного интерфейса.
+
+Сборку `core/tools` можно выполнить без Qt, отключив цель UI.
+
+## Сборка
+
+### Только ядро и инструменты
 
 ```powershell
 cmake -S . -B build -DOCB_BUILD_UI=OFF -DOCB_BUILD_TESTS=OFF
 cmake --build build --config Release --parallel
 ```
 
-### Full Qt Desktop App
+### Полное настольное Qt-приложение
 
-Pass Qt's CMake prefix path if Qt is not globally discoverable:
+Если Qt не находится глобально, передайте путь CMake prefix для Qt:
 
 ```powershell
 cmake -S . -B build-ui -DOCB_BUILD_UI=ON -DOCB_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=C:\Qt\6.6.3\msvc2019_64
 cmake --build build-ui --config Release --parallel
 ```
 
-On Linux or macOS, use the equivalent Qt installation path for `CMAKE_PREFIX_PATH`.
+На Linux или macOS используйте соответствующий путь установки Qt для `CMAKE_PREFIX_PATH`.
 
-## Run
+## Запуск
 
-After a full UI build, run the generated `ocb_studio` executable from the `app` target output directory. On Windows release builds this is typically:
+После полной сборки UI запустите сгенерированный `ocb_studio` из выходного каталога цели `app`. Для релизных сборок Windows обычно это:
 
 ```powershell
 .\build-ui\app\Release\ocb_studio.exe
 ```
 
-For a portable Windows folder, deploy Qt runtime files with `windeployqt`:
+Для переносимой папки Windows разверните runtime-файлы Qt с помощью `windeployqt`:
 
 ```powershell
 windeployqt --release --dir dist .\build-ui\app\Release\ocb_studio.exe
 ```
 
-## Example Workflow
+## Пример рабочего процесса
 
-1. Open `MsOcFile.ocb`.
-2. Open a BIOS image with `Open BIOS` to extract Setup IFR fields.
-3. Search for a setting such as `CPU Lite Load`, `CEP`, or `Power Limit`.
-4. Select a field and write a new numeric value.
-5. Save the OCB profile with checksum compensation enabled.
-6. Test the generated profile cautiously on the target board.
+1. Откройте `MsOcFile.ocb`.
+2. Откройте образ BIOS через `Открыть BIOS`, чтобы извлечь поля Setup IFR.
+3. Найдите настройку, например `CPU Lite Load`, `CEP` или `Power Limit`.
+4. Выберите поле и запишите новое числовое значение.
+5. Сохраните OCB-профиль с включенной компенсацией контрольной суммы.
+6. Осторожно протестируйте сгенерированный профиль на целевой плате.
 
-## Tests
+## Тесты
 
-The test executable is intentionally simple. Some integration checks rely on local BIOS/OCB fixture files that are not included in this public repository. For public CI, the project currently performs a source build of the core/tools targets without proprietary fixtures.
+Тестовый исполняемый файл намеренно простой. Некоторые интеграционные проверки зависят от локальных fixture-файлов BIOS/OCB, которые не входят в публичный репозиторий. В публичном CI проект сейчас выполняет сборку исходников целей `core/tools` без проприетарных fixture-файлов.
 
 ```powershell
 cmake -S . -B build-test -DOCB_BUILD_UI=OFF -DOCB_BUILD_TESTS=ON
@@ -114,27 +114,27 @@ cmake --build build-test --config Release --parallel
 ctest --test-dir build-test -C Release --output-on-failure
 ```
 
-## Third-Party Source
+## Сторонние исходники
 
-This repository vendors selected source from:
+В репозиторий включены выбранные исходники из:
 
-- [UEFITool](https://github.com/LongSoft/UEFITool), BSD-style license.
+- [UEFITool](https://github.com/LongSoft/UEFITool), лицензия в стиле BSD.
 - [Universal IFR Extractor](https://github.com/donovan6000/Universal-IFR-Extractor), GPLv3.
 
-Because Universal IFR Extractor is integrated from GPLv3 source, this project is distributed under `GPL-3.0-only`.
+Поскольку Universal IFR Extractor интегрирован из исходников GPLv3, проект распространяется под `GPL-3.0-only`.
 
-## Roadmap
+## Дорожная карта
 
-- Improve board/profile detection and metadata display.
-- Add richer field validation and value editors for common IFR option types.
-- Add import/export of preset files.
-- Add packaged releases for Windows, Linux, and macOS.
-- Add fixture-free parser tests suitable for public CI.
+- Улучшить определение платы/профиля и отображение метаданных.
+- Добавить более богатую проверку полей и редакторы значений для распространенных типов IFR-опций.
+- Добавить импорт/экспорт файлов пресетов.
+- Добавить пакетные релизы для Windows, Linux и macOS.
+- Добавить parser-тесты без fixture-файлов, подходящие для публичного CI.
 
-## Contributing
+## Участие в разработке
 
-Contributions are welcome when they keep the project native, maintainable, and careful about firmware safety. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+Вклады приветствуются, если они сохраняют проект нативным, поддерживаемым и осторожным в вопросах безопасности firmware. Перед открытием pull request прочитайте [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## License
+## Лицензия
 
-OCB Studio Native is licensed under [GPL-3.0-only](LICENSE). Third-party source retains its original copyright and license notices.
+OCB Studio Native распространяется под [GPL-3.0-only](LICENSE). Сторонние исходники сохраняют свои оригинальные уведомления об авторских правах и лицензиях.

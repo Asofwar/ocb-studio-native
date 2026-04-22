@@ -1,23 +1,23 @@
 ---
-name: Feature request
-about: Suggest an improvement
-title: "[Feature]: "
+name: Запрос функции
+about: Предложите улучшение
+title: "[Функция]: "
 labels: enhancement
 assignees: ""
 ---
 
-## Problem
+## Проблема
 
-What workflow or limitation should this improve?
+Какой рабочий процесс или ограничение это должно улучшить?
 
-## Proposed Solution
+## Предлагаемое решение
 
-Describe the behavior you want.
+Опишите желаемое поведение.
 
-## Alternatives
+## Альтернативы
 
-What other approaches did you consider?
+Какие другие подходы вы рассматривали?
 
-## Safety Considerations
+## Соображения безопасности
 
-Does this affect parsing, offsets, checksums, or saved firmware/profile data?
+Затрагивает ли это разбор, offset-ы, контрольные суммы или сохраненные данные firmware/профиля?

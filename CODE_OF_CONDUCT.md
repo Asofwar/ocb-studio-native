@@ -1,23 +1,23 @@
-# Code of Conduct
+# Кодекс поведения
 
-## Our Pledge
+## Наши обязательства
 
-We aim to keep this project practical, respectful, and welcoming to people with different levels of firmware, C++, and Qt experience.
+Мы стремимся сохранять проект практичным, уважительным и открытым для людей с разным уровнем опыта в firmware, C++ и Qt.
 
-## Expected Behavior
+## Ожидаемое поведение
 
-- Be respectful and constructive.
-- Assume good intent while staying precise about technical risk.
-- Keep discussions focused on reproducible behavior, code quality, and user safety.
-- Be careful when discussing firmware modification; avoid encouraging unsafe flashing or irreversible changes.
+- Будьте уважительны и конструктивны.
+- Предполагайте добрые намерения, оставаясь точными в вопросах технического риска.
+- Держите обсуждения вокруг воспроизводимого поведения, качества кода и безопасности пользователей.
+- Будьте осторожны при обсуждении модификации firmware; избегайте поощрения небезопасной прошивки или необратимых изменений.
 
-## Unacceptable Behavior
+## Недопустимое поведение
 
-- Harassment, insults, or discriminatory language.
-- Publishing private firmware dumps, serial numbers, keys, or personal data.
-- Pressuring users to apply risky firmware changes without clear warnings.
-- Spam or off-topic promotion.
+- Домогательства, оскорбления или дискриминационная лексика.
+- Публикация приватных дампов firmware, серийных номеров, ключей или персональных данных.
+- Давление на пользователей с целью применить рискованные изменения firmware без четких предупреждений.
+- Спам или продвижение не по теме.
 
-## Enforcement
+## Применение правил
 
-Maintainers may edit, hide, or remove comments and may restrict participation for behavior that harms the project or its users. If you need to report a conduct issue, open a private security advisory or contact the maintainer through GitHub.
+Мейнтейнеры могут редактировать, скрывать или удалять комментарии, а также ограничивать участие за поведение, которое вредит проекту или его пользователям. Если нужно сообщить о нарушении кодекса поведения, откройте приватное security advisory или свяжитесь с мейнтейнером через GitHub.

@@ -1,25 +1,25 @@
-# Contributing
+# Участие в разработке
 
-Thanks for taking the time to improve OCB Studio Native.
+Спасибо, что хотите улучшить OCB Studio Native.
 
-## Development Principles
+## Принципы разработки
 
-- Keep the application native C++ and Qt.
-- Prefer small, reviewable changes over broad rewrites.
-- Do not add external runtime tools when source integration or a clean library wrapper is practical.
-- Keep firmware handling conservative and explicit.
-- Do not commit user BIOS images, OCB profiles, serial numbers, board dumps, or other machine-specific artifacts.
+- Сохраняйте приложение нативным: C++ и Qt.
+- Предпочитайте небольшие, удобные для review изменения широким переписываниям.
+- Не добавляйте внешние runtime-инструменты, если практична интеграция из исходников или чистая библиотечная обертка.
+- Делайте обработку firmware консервативной и явной.
+- Не коммитьте пользовательские BIOS-образы, OCB-профили, серийные номера, дампы плат и другие артефакты, специфичные для конкретной машины.
 
-## Local Build
+## Локальная сборка
 
-Core/tools only:
+Только `core/tools`:
 
 ```powershell
 cmake -S . -B build -DOCB_BUILD_UI=OFF -DOCB_BUILD_TESTS=OFF
 cmake --build build --config Release --parallel
 ```
 
-Full Qt app:
+Полное Qt-приложение:
 
 ```powershell
 cmake -S . -B build-ui -DOCB_BUILD_UI=ON -DOCB_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=C:\Qt\6.6.3\msvc2019_64
@@ -28,16 +28,16 @@ cmake --build build-ui --config Release --parallel
 
 ## Pull Requests
 
-Before opening a pull request:
+Перед открытием pull request:
 
-- Build the affected targets.
-- Run tests when you have the required local fixtures.
-- Update documentation for user-visible behavior.
-- Explain firmware safety implications for changes that affect parsing, mapping, checksums, or saved output.
+- Соберите затронутые цели.
+- Запустите тесты, если у вас есть необходимые локальные fixture-файлы.
+- Обновите документацию для поведения, видимого пользователю.
+- Объясните последствия для безопасности firmware, если изменения затрагивают разбор, сопоставление, контрольные суммы или сохраненный вывод.
 
-## Coding Style
+## Стиль кода
 
-- C++20 for project code.
-- CMake targets should remain modular.
-- Public headers live under `include/ocb/...`.
-- Use clear C++ interfaces around vendored tools instead of exposing upstream internals broadly.
+- C++20 для кода проекта.
+- CMake-цели должны оставаться модульными.
+- Публичные заголовки находятся в `include/ocb/...`.
+- Используйте ясные C++-интерфейсы вокруг vendored-инструментов вместо широкого раскрытия upstream-внутренностей.

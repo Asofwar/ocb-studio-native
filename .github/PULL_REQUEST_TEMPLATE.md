@@ -1,14 +1,14 @@
-## Summary
+## Краткое описание
 
-Describe the change and why it is needed.
+Опишите изменение и почему оно нужно.
 
-## Validation
+## Проверка
 
-- [ ] Built affected targets
-- [ ] Ran relevant tests or explained why they were not run
-- [ ] Checked firmware/profile safety implications
-- [ ] Updated documentation if user-visible behavior changed
+- [ ] Собраны затронутые цели
+- [ ] Запущены релевантные тесты или объяснено, почему они не запускались
+- [ ] Проверены последствия для безопасности firmware/профиля
+- [ ] Обновлена документация, если изменилось поведение, видимое пользователю
 
-## Notes
+## Примечания
 
-Mention required local fixtures, board/BIOS assumptions, or follow-up work.
+Укажите необходимые локальные fixture-файлы, предположения о плате/BIOS или последующую работу.

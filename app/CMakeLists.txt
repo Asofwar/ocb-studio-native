@@ -12,6 +12,7 @@ target_include_directories(ocb_studio
 
 target_link_libraries(ocb_studio
   PRIVATE
+    ocb_build_info
     Qt6::Widgets
     ocb_core
     ocb_ui

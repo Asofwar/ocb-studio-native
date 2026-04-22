@@ -1,4 +1,4 @@
-# Build output
+# Вывод сборки
 build/
 build-*/
 out/
@@ -11,7 +11,7 @@ cmake_install.cmake
 CTestTestfile.cmake
 Testing/
 
-# IDEs and local tooling
+# IDE и локальные инструменты
 .vs/
 .vscode/
 .idea/
@@ -20,7 +20,7 @@ Testing/
 *.VC.db
 *.VC.VC.opendb
 
-# Compilers and binaries
+# Компиляторы и бинарные файлы
 *.obj
 *.o
 *.a
@@ -34,13 +34,13 @@ Testing/
 *.app
 *.dSYM/
 
-# Qt generated files
+# Файлы, сгенерированные Qt
 *_autogen/
 moc_*.cpp
 qrc_*.cpp
 ui_*.h
 
-# Local firmware/profile/test artifacts
+# Локальные артефакты firmware, профилей и тестов
 *.bin
 *.rom
 *.fd

@@ -1,0 +1,5 @@
+#pragma once
+
+#define OCB_BUILD_VERSION "@OCB_BUILD_VERSION@"
+#define OCB_BUILD_GIT_SHA "@OCB_BUILD_GIT_SHA@"
+#define OCB_BUILD_DATE "@OCB_BUILD_DATE@"

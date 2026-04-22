@@ -22,7 +22,7 @@ void AppController::openOcb(const std::filesystem::path& path) {
 void AppController::openIfrText(const std::filesystem::path& path) {
     std::ifstream input(path);
     if (!input) {
-        throw core::OcbException("Failed to open IFR file: " + path.string());
+        throw core::OcbException("Не удалось открыть IFR-файл: " + path.string());
     }
 
     const auto questions = tools::ifr::IfrTextParser{}.parse(input);
@@ -34,7 +34,7 @@ void AppController::openIfrText(const std::filesystem::path& path) {
 void AppController::openBiosImage(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary);
     if (!input) {
-        throw core::OcbException("Failed to open BIOS image: " + path.string());
+        throw core::OcbException("Не удалось открыть образ BIOS: " + path.string());
     }
 
     const std::vector<std::uint8_t> biosImage{
@@ -52,25 +52,25 @@ void AppController::openBiosImage(const std::filesystem::path& path) {
 
 void AppController::saveOcb(const std::filesystem::path& path, bool compensateChecksums) const {
     if (!profile_) {
-        throw core::OcbException("No OCB profile is loaded.");
+        throw core::OcbException("OCB-профиль не загружен.");
     }
     profile_->saveToFile(path, compensateChecksums);
 }
 
 void AppController::applyPreset(const std::string& presetName) {
     if (!profile_) {
-        throw core::OcbException("No OCB profile is loaded.");
+        throw core::OcbException("OCB-профиль не загружен.");
     }
     core::applyPreset(*profile_, presetName);
 }
 
 void AppController::writeField(const std::string& fieldId, std::uint64_t value) {
     if (!profile_) {
-        throw core::OcbException("No OCB profile is loaded.");
+        throw core::OcbException("OCB-профиль не загружен.");
     }
     const auto* field = catalog_.findById(fieldId);
     if (field == nullptr) {
-        throw core::OcbException("Unknown field id: " + fieldId);
+        throw core::OcbException("Неизвестный идентификатор поля: " + fieldId);
     }
     profile_->write(*field, value);
 }
@@ -87,14 +87,14 @@ bool AppController::hasProfile() const noexcept {
 
 const core::OcbProfile& AppController::profile() const {
     if (!profile_) {
-        throw core::OcbException("No OCB profile is loaded.");
+        throw core::OcbException("OCB-профиль не загружен.");
     }
     return *profile_;
 }
 
 core::OcbProfile& AppController::profile() {
     if (!profile_) {
-        throw core::OcbException("No OCB profile is loaded.");
+        throw core::OcbException("OCB-профиль не загружен.");
     }
     return *profile_;
 }

@@ -1,36 +1,36 @@
 ---
-name: Bug report
-about: Report a reproducible problem
-title: "[Bug]: "
+name: Сообщение об ошибке
+about: Сообщите о воспроизводимой проблеме
+title: "[Ошибка]: "
 labels: bug
 assignees: ""
 ---
 
-## Description
+## Описание
 
-What happened?
+Что произошло?
 
-## Steps to Reproduce
+## Шаги воспроизведения
 
 1.
 2.
 3.
 
-## Expected Behavior
+## Ожидаемое поведение
 
-What did you expect to happen?
+Что вы ожидали увидеть?
 
-## Environment
+## Окружение
 
-- OS:
-- Compiler:
-- Qt version:
-- OCB Studio Native version or commit:
+- ОС:
+- Компилятор:
+- Версия Qt:
+- Версия или commit OCB Studio Native:
 
-## Firmware/Profile Context
+## Контекст firmware/профиля
 
-Do not attach private BIOS dumps or OCB profiles publicly. Describe the board and BIOS version if it is safe to share.
+Не прикладывайте приватные дампы BIOS или OCB-профили публично. Опишите плату и версию BIOS, если этим безопасно делиться.
 
-## Logs or Screenshots
+## Логи или скриншоты
 
-Paste relevant non-sensitive output here.
+Вставьте сюда релевантный вывод без чувствительных данных.

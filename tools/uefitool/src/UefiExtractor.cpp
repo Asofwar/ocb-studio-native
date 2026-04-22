@@ -119,12 +119,12 @@ FirmwareNode UefiToolExtractor::parseImage(std::span<const std::uint8_t> image) 
 
     const auto status = parser.parse(toUByteArray(image));
     if (status != U_SUCCESS) {
-        throw std::runtime_error("UEFITool parser failed with status " + std::to_string(status));
+        throw std::runtime_error("Парсер UEFITool завершился со статусом " + std::to_string(status));
     }
 
     FirmwareNode root;
-    root.name = "root";
-    root.type = "Root";
+    root.name = "корень";
+    root.type = "Корень";
 
     const auto rootRows = model.rowCount();
     root.children.reserve(static_cast<std::size_t>(rootRows));

@@ -8,7 +8,7 @@ namespace ocb::core {
 
 const std::vector<Preset>& builtinPresets() {
     static const std::vector<Preset> presets{
-        {"Conservative 200/220W 307A",
+        {"Консервативный 200/220W 307A",
          {
              {"Long Duration Power Limit (W)", 200},
              {"Short Duration Power Limit (W)", 220},
@@ -23,7 +23,7 @@ const std::vector<Preset>& builtinPresets() {
              {"IA ICC Unlimited Mode", 0},
              {"GT ICC Unlimited Mode", 0},
          }},
-        {"Intel limits 253/253W 307A",
+        {"Лимиты Intel 253/253W 307A",
          {
              {"Long Duration Power Limit (W)", 253},
              {"Short Duration Power Limit (W)", 253},
@@ -36,7 +36,7 @@ const std::vector<Preset>& builtinPresets() {
              {"IA ICC Unlimited Mode", 0},
              {"GT ICC Unlimited Mode", 0},
          }},
-        {"Performance 253/253W 400A",
+        {"Производительность 253/253W 400A",
          {
              {"Long Duration Power Limit (W)", 253},
              {"Short Duration Power Limit (W)", 253},
@@ -47,7 +47,7 @@ const std::vector<Preset>& builtinPresets() {
              {"IA ICC Unlimited Mode", 0},
              {"GT ICC Unlimited Mode", 0},
          }},
-        {"Disable boost helpers only",
+        {"Отключить только помощники boost",
          {
              {"Enhanced Turbo", 1},
              {"Game Boost", 0},
@@ -66,7 +66,7 @@ void applyPreset(OcbProfile& profile, const Preset& preset) {
             return candidate.prompt == prompt;
         });
         if (field == fields.end()) {
-            throw OcbException("Preset references an unknown field: " + prompt);
+            throw OcbException("Пресет ссылается на неизвестное поле: " + prompt);
         }
         profile.write(*field, value);
     }
@@ -78,7 +78,7 @@ void applyPreset(OcbProfile& profile, const std::string& presetName) {
         return candidate.name == presetName;
     });
     if (preset == presets.end()) {
-        throw OcbException("Unknown preset: " + presetName);
+        throw OcbException("Неизвестный пресет: " + presetName);
     }
     applyPreset(profile, *preset);
 }

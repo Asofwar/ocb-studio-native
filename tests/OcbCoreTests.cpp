@@ -29,7 +29,7 @@ std::filesystem::path testDataDir() {
 std::vector<std::uint8_t> readAll(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary);
     if (!input) {
-        throw std::runtime_error("Failed to read fixture: " + path.string());
+        throw std::runtime_error("Не удалось прочитать fixture-файл: " + path.string());
     }
     return {std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
 }
@@ -40,7 +40,7 @@ const OcbField& fieldByPrompt(const std::string& prompt) {
         return field.prompt == prompt;
     });
     if (it == fields.end()) {
-        throw std::runtime_error("Missing builtin field: " + prompt);
+        throw std::runtime_error("Отсутствует встроенное поле: " + prompt);
     }
     return *it;
 }
@@ -54,24 +54,24 @@ void expect(bool condition, const std::string& message) {
 void testReadKnownValues() {
     const auto profile = OcbProfile::loadFromFile(testDataDir() / "MsOcFile.ocb");
 
-    expect(profile.read(fieldByPrompt("Long Duration Power Limit (W)")) == 200, "PL1 should be 200 W");
-    expect(profile.read(fieldByPrompt("Short Duration Power Limit (W)")) == 220, "PL2 should be 220 W");
-    expect(profile.read(fieldByPrompt("CPU Current Limit (A)")) == 502, "CPU current should be 502 A");
-    expect(profile.read(fieldByPrompt("CPU Lite Load")) == 30, "CPU Lite Load should be Mode 4 value");
-    expect(profile.read(fieldByPrompt("Game Boost")) == 0, "Game Boost should be disabled");
+    expect(profile.read(fieldByPrompt("Long Duration Power Limit (W)")) == 200, "PL1 должен быть 200 W");
+    expect(profile.read(fieldByPrompt("Short Duration Power Limit (W)")) == 220, "PL2 должен быть 220 W");
+    expect(profile.read(fieldByPrompt("CPU Current Limit (A)")) == 502, "Лимит тока CPU должен быть 502 A");
+    expect(profile.read(fieldByPrompt("CPU Lite Load")) == 30, "CPU Lite Load должен иметь значение режима 4");
+    expect(profile.read(fieldByPrompt("Game Boost")) == 0, "Game Boost должен быть отключен");
 }
 
 void testConservativePresetMatchesWorkingTry02() {
     auto profile = OcbProfile::loadFromFile(testDataDir() / "MsOcFile.ocb");
-    ocb::core::applyPreset(profile, "Conservative 200/220W 307A");
+    ocb::core::applyPreset(profile, "Консервативный 200/220W 307A");
 
     const auto produced = profile.exportBytes(true);
     const auto expected = readAll(testDataDir() / "try_02_conservative_sum_comp" / "MsOcFile.ocb");
 
-    expect(produced == expected, "Conservative preset must match known BIOS-accepted try02 output byte-for-byte");
+    expect(produced == expected, "Консервативный пресет должен побайтно совпадать с известным выводом try02, принятым BIOS");
     expect(
         ocb::core::ChecksumCompensator::compute(produced) == profile.targetSums(),
-        "Checksum-style sums should match the loaded original profile");
+        "Суммы в стиле контрольных сумм должны совпадать с загруженным оригинальным профилем");
 }
 
 void testInvalidInputRejected() {
@@ -81,18 +81,18 @@ void testInvalidInputRejected() {
     } catch (const ocb::core::OcbException&) {
         rejected = true;
     }
-    expect(rejected, "Invalid profile must be rejected");
+    expect(rejected, "Некорректный профиль должен быть отклонен");
 }
 
 void testIfrTextParserReadsSetupMap() {
     std::ifstream input(testDataDir() / "Setup_IFR.txt");
     if (!input) {
-        throw std::runtime_error("Missing Setup_IFR.txt fixture");
+        throw std::runtime_error("Отсутствует fixture-файл Setup_IFR.txt");
     }
 
     const auto questions = ocb::tools::ifr::IfrTextParser{}.parse(input);
 
-    expect(questions.size() > 4000, "IFR parser should extract the mapped Setup questions");
+    expect(questions.size() > 4000, "IFR-парсер должен извлечь сопоставленные вопросы Setup");
 
     const auto hasCpuCurrent = std::any_of(questions.begin(), questions.end(), [](const auto& question) {
         return question.prompt == "CPU Lite Load"
@@ -101,31 +101,31 @@ void testIfrTextParserReadsSetupMap() {
             && question.sizeBits == 8
             && !question.options.empty();
     });
-    expect(hasCpuCurrent, "IFR parser should extract CPU Lite Load options");
+    expect(hasCpuCurrent, "IFR-парсер должен извлечь опции CPU Lite Load");
 }
 
 void testIfrQuestionsMapIntoFieldCatalog() {
     std::ifstream input(testDataDir() / "Setup_IFR.txt");
     if (!input) {
-        throw std::runtime_error("Missing Setup_IFR.txt fixture");
+        throw std::runtime_error("Отсутствует fixture-файл Setup_IFR.txt");
     }
 
     const auto questions = ocb::tools::ifr::IfrTextParser{}.parse(input);
     const auto fields = ocb::core::IfrFieldMapper{}.mapQuestions(questions);
 
-    expect(fields.size() > 4000, "IFR mapper should preserve mapped field count");
+    expect(fields.size() > 4000, "Сопоставитель IFR должен сохранить количество сопоставленных полей");
 
     ocb::core::FieldCatalog catalog;
     catalog.merge(fields);
 
     const auto* liteLoad = catalog.findByPrompt("CPU Lite Load");
-    expect(liteLoad != nullptr, "FieldCatalog should find CPU Lite Load");
-    expect(liteLoad->varStore == "Setup", "CPU Lite Load should map to Setup");
-    expect(liteLoad->varOffset == 0xF64, "CPU Lite Load offset should be 0xF64");
-    expect(!liteLoad->options.empty(), "CPU Lite Load should have options");
+    expect(liteLoad != nullptr, "FieldCatalog должен найти CPU Lite Load");
+    expect(liteLoad->varStore == "Setup", "CPU Lite Load должен сопоставляться с Setup");
+    expect(liteLoad->varOffset == 0xF64, "Смещение CPU Lite Load должно быть 0xF64");
+    expect(!liteLoad->options.empty(), "У CPU Lite Load должны быть опции");
 
     const auto cepResults = catalog.search("CEP");
-    expect(!cepResults.empty(), "FieldCatalog search should find CEP fields");
+    expect(!cepResults.empty(), "Поиск FieldCatalog должен находить поля CEP");
 }
 
 void testUefiExtractorFindsSetupPe32() {
@@ -134,8 +134,8 @@ void testUefiExtractorFindsSetupPe32() {
     const auto tree = extractor.parseImage(bios);
     const auto setup = extractor.findBestSetupModule(tree);
 
-    expect(setup.has_value(), "UEFI extractor should find Setup PE32 module");
-    expect(setup->pe32Body.size() > 2'000'000, "Setup PE32 module should be the large setup body");
+    expect(setup.has_value(), "UEFI-экстрактор должен найти модуль Setup PE32");
+    expect(setup->pe32Body.size() > 2'000'000, "Модуль Setup PE32 должен быть крупным телом setup");
 }
 
 void testNativeIfrExtractorReadsSetupPe32() {
@@ -143,20 +143,20 @@ void testNativeIfrExtractorReadsSetupPe32() {
     const ocb::tools::uefi::UefiToolExtractor uefiExtractor;
     const auto tree = uefiExtractor.parseImage(bios);
     const auto setup = uefiExtractor.findBestSetupModule(tree);
-    expect(setup.has_value(), "UEFI extractor should find Setup PE32 module");
+    expect(setup.has_value(), "UEFI-экстрактор должен найти модуль Setup PE32");
 
     const auto questions = ocb::tools::ifr::NativeIfrExtractor{}.extractQuestions(setup->pe32Body);
-    expect(questions.size() > 4000, "Native IFR extractor should read Setup questions from BIOS");
+    expect(questions.size() > 4000, "Нативный IFR-экстрактор должен прочитать вопросы Setup из BIOS");
 
     const auto fields = ocb::core::IfrFieldMapper{}.mapQuestions(questions);
     ocb::core::FieldCatalog catalog;
     catalog.merge(fields);
 
     const auto* liteLoad = catalog.findByPrompt("CPU Lite Load");
-    expect(liteLoad != nullptr, "Native BIOS IFR pipeline should find CPU Lite Load");
-    expect(liteLoad->varStore == "Setup", "Native CPU Lite Load should map to Setup");
-    expect(liteLoad->varOffset == 0xF64, "Native CPU Lite Load offset should be 0xF64");
-    expect(!liteLoad->options.empty(), "Native CPU Lite Load should have options");
+    expect(liteLoad != nullptr, "Нативный конвейер BIOS IFR должен найти CPU Lite Load");
+    expect(liteLoad->varStore == "Setup", "Нативный CPU Lite Load должен сопоставляться с Setup");
+    expect(liteLoad->varOffset == 0xF64, "Смещение нативного CPU Lite Load должно быть 0xF64");
+    expect(!liteLoad->options.empty(), "У нативного CPU Lite Load должны быть опции");
 }
 
 } // namespace
@@ -171,10 +171,10 @@ int main() {
         testUefiExtractorFindsSetupPe32();
         testNativeIfrExtractorReadsSetupPe32();
     } catch (const std::exception& error) {
-        std::cerr << "FAILED: " << error.what() << '\n';
+        std::cerr << "ОШИБКА: " << error.what() << '\n';
         return 1;
     }
 
-    std::cout << "ocb_core_tests: OK\n";
+    std::cout << "ocb_core_tests: успешно\n";
     return 0;
 }

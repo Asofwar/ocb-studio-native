@@ -1,20 +1,20 @@
-# Security Policy
+# Политика безопасности
 
-## Supported Versions
+## Поддерживаемые версии
 
-Security handling currently applies to the latest public release and the `main` branch.
+Обработка вопросов безопасности сейчас применяется к последнему публичному релизу и ветке `main`.
 
-## Reporting a Vulnerability
+## Сообщение об уязвимости
 
-Please do not open a public issue for vulnerabilities involving unsafe parsing, crafted firmware images, path traversal, memory corruption, or accidental disclosure of private firmware data.
+Пожалуйста, не открывайте публичный issue для уязвимостей, связанных с небезопасным разбором, специально подготовленными образами firmware, path traversal, повреждением памяти или случайным раскрытием приватных firmware-данных.
 
-Use GitHub's private vulnerability reporting if it is available for the repository, or contact the maintainer through GitHub with:
+Используйте приватную отправку отчетов об уязвимостях GitHub, если она доступна для репозитория, или свяжитесь с мейнтейнером через GitHub, указав:
 
-- A clear description of the issue.
-- Reproduction steps.
-- A minimal non-sensitive sample when possible.
-- Your assessment of impact.
+- Четкое описание проблемы.
+- Шаги воспроизведения.
+- Минимальный неперсональный пример, если возможно.
+- Вашу оценку влияния.
 
-## Firmware Safety
+## Безопасность firmware
 
-This project does not flash firmware. Still, malformed parsing or profile generation can lead users toward unsafe output. Treat parsing bugs, incorrect offsets, checksum mistakes, and misleading UI behavior as safety-sensitive.
+Этот проект не прошивает firmware. Тем не менее ошибки разбора или генерации профиля могут привести пользователей к небезопасному выводу. Считайте ошибки разбора, неверные offset-ы, ошибки контрольных сумм и вводящее в заблуждение поведение UI чувствительными к безопасности.

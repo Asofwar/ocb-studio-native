@@ -66,7 +66,7 @@ QVariant FieldTableModel::data(const QModelIndex& index, int role) const {
     case OffsetColumn:
         return hexOffset(field.varOffset);
     case SizeColumn:
-        return QString("%1 bit").arg(field.sizeBits);
+        return QString("%1 бит").arg(field.sizeBits);
     case ValueColumn:
         return valueText(field);
     default:
@@ -81,15 +81,15 @@ QVariant FieldTableModel::headerData(int section, Qt::Orientation orientation, i
 
     switch (section) {
     case PromptColumn:
-        return "Prompt";
+        return "Поле";
     case VarStoreColumn:
-        return "Store";
+        return "Хранилище";
     case OffsetColumn:
-        return "Offset";
+        return "Смещение";
     case SizeColumn:
-        return "Size";
+        return "Размер";
     case ValueColumn:
-        return "Current";
+        return "Текущее";
     default:
         return {};
     }
@@ -102,7 +102,7 @@ QString FieldTableModel::valueText(const core::OcbField& field) const {
     try {
         return optionText(field, profile_->read(field));
     } catch (...) {
-        return "error";
+        return "ошибка";
     }
 }
 

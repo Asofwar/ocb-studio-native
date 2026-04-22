@@ -36,7 +36,7 @@ std::uint64_t parseValue(const QString& text) {
     const auto input = base == 16 ? std::string_view(value).substr(2) : std::string_view(value);
     const auto result = std::from_chars(input.data(), input.data() + input.size(), parsed, base);
     if (result.ec != std::errc{}) {
-        throw core::OcbException("Invalid numeric value: " + value);
+        throw core::OcbException("Некорректное числовое значение: " + value);
     }
     return parsed;
 }
@@ -56,20 +56,20 @@ void MainWindow::buildUi() {
     auto* root = new QVBoxLayout(central);
 
     auto* toolbar = new QHBoxLayout();
-    auto* openOcbButton = new QPushButton("Open OCB", central);
-    auto* openBiosButton = new QPushButton("Open BIOS", central);
-    auto* openIfrButton = new QPushButton("Open IFR", central);
-    auto* saveButton = new QPushButton("Save MsOcFile.ocb", central);
-    auto* resetButton = new QPushButton("Reset", central);
+    auto* openOcbButton = new QPushButton("Открыть OCB", central);
+    auto* openBiosButton = new QPushButton("Открыть BIOS", central);
+    auto* openIfrButton = new QPushButton("Открыть IFR", central);
+    auto* saveButton = new QPushButton("Сохранить MsOcFile.ocb", central);
+    auto* resetButton = new QPushButton("Сбросить", central);
 
     presetCombo_ = new QComboBox(central);
-    presetCombo_->addItem("Choose preset...");
+    presetCombo_->addItem("Выберите пресет...");
     for (const auto& preset : core::builtinPresets()) {
         presetCombo_->addItem(QString::fromStdString(preset.name));
     }
-    auto* applyPresetButton = new QPushButton("Apply Preset", central);
+    auto* applyPresetButton = new QPushButton("Применить пресет", central);
 
-    compensateCheck_ = new QCheckBox("Checksum compensation", central);
+    compensateCheck_ = new QCheckBox("Компенсация контрольной суммы", central);
     compensateCheck_->setChecked(true);
 
     toolbar->addWidget(openOcbButton);
@@ -84,7 +84,7 @@ void MainWindow::buildUi() {
     toolbar->addWidget(compensateCheck_);
 
     searchEdit_ = new QLineEdit(central);
-    searchEdit_->setPlaceholderText("Search fields: CEP, Lite Load, Current, Turbo...");
+    searchEdit_->setPlaceholderText("Поиск полей: CEP, Lite Load, Current, Turbo...");
 
     fieldModel_ = new FieldTableModel(this);
     fieldTable_ = new QTableView(central);
@@ -95,10 +95,10 @@ void MainWindow::buildUi() {
     fieldTable_->verticalHeader()->hide();
 
     auto* editor = new QHBoxLayout();
-    selectionLabel_ = new QLabel("No field selected", central);
+    selectionLabel_ = new QLabel("Поле не выбрано", central);
     valueEdit_ = new QLineEdit(central);
-    valueEdit_->setPlaceholderText("New value");
-    auto* writeValueButton = new QPushButton("Write Value", central);
+    valueEdit_->setPlaceholderText("Новое значение");
+    auto* writeValueButton = new QPushButton("Записать значение", central);
     editor->addWidget(selectionLabel_, 2);
     editor->addWidget(valueEdit_, 1);
     editor->addWidget(writeValueButton);
@@ -135,10 +135,10 @@ void MainWindow::refreshFields() {
 }
 
 void MainWindow::refreshStatus() {
-    const auto ocb = controller_.ocbPath().empty() ? QString("none") : QString::fromStdWString(controller_.ocbPath().wstring());
-    const auto bios = controller_.biosPath().empty() ? QString("none") : QString::fromStdWString(controller_.biosPath().wstring());
-    const auto ifr = controller_.ifrPath().empty() ? QString("none") : QString::fromStdWString(controller_.ifrPath().wstring());
-    statusLabel_->setText(QString("OCB: %1 | BIOS: %2 | IFR: %3 | Fields: %4")
+    const auto ocb = controller_.ocbPath().empty() ? QString("нет") : QString::fromStdWString(controller_.ocbPath().wstring());
+    const auto bios = controller_.biosPath().empty() ? QString("нет") : QString::fromStdWString(controller_.biosPath().wstring());
+    const auto ifr = controller_.ifrPath().empty() ? QString("нет") : QString::fromStdWString(controller_.ifrPath().wstring());
+    statusLabel_->setText(QString("OCB: %1 | BIOS: %2 | IFR: %3 | Полей: %4")
         .arg(ocb)
         .arg(bios)
         .arg(ifr)
@@ -159,7 +159,7 @@ const core::OcbField* MainWindow::selectedField() const {
 
 void MainWindow::openOcb() {
     try {
-        const auto path = QFileDialog::getOpenFileName(this, "Open OCB profile", {}, "MSI OC Profile (*.ocb);;All files (*.*)");
+        const auto path = QFileDialog::getOpenFileName(this, "Открыть OCB-профиль", {}, "Профиль MSI OC (*.ocb);;Все файлы (*.*)");
         if (path.isEmpty()) {
             return;
         }
@@ -167,13 +167,13 @@ void MainWindow::openOcb() {
         refreshFields();
         refreshStatus();
     } catch (const std::exception& error) {
-        showError("Open OCB failed", error);
+        showError("Не удалось открыть OCB", error);
     }
 }
 
 void MainWindow::openIfr() {
     try {
-        const auto path = QFileDialog::getOpenFileName(this, "Open IFR text", {}, "IFR text (*.txt);;All files (*.*)");
+        const auto path = QFileDialog::getOpenFileName(this, "Открыть текст IFR", {}, "Текст IFR (*.txt);;Все файлы (*.*)");
         if (path.isEmpty()) {
             return;
         }
@@ -181,7 +181,7 @@ void MainWindow::openIfr() {
         refreshFields();
         refreshStatus();
     } catch (const std::exception& error) {
-        showError("Open IFR failed", error);
+        showError("Не удалось открыть IFR", error);
     }
 }
 
@@ -189,9 +189,9 @@ void MainWindow::openBios() {
     try {
         const auto path = QFileDialog::getOpenFileName(
             this,
-            "Open BIOS image",
+            "Открыть образ BIOS",
             {},
-            "BIOS images (*.bin *.rom *.cap *.fd *.a* *.A*);;All files (*.*)");
+            "Образы BIOS (*.bin *.rom *.cap *.fd *.a* *.A*);;Все файлы (*.*)");
         if (path.isEmpty()) {
             return;
         }
@@ -199,20 +199,20 @@ void MainWindow::openBios() {
         refreshFields();
         refreshStatus();
     } catch (const std::exception& error) {
-        showError("Open BIOS failed", error);
+        showError("Не удалось открыть BIOS", error);
     }
 }
 
 void MainWindow::saveOcb() {
     try {
-        const auto path = QFileDialog::getSaveFileName(this, "Save OCB profile", "MsOcFile.ocb", "MSI OC Profile (*.ocb);;All files (*.*)");
+        const auto path = QFileDialog::getSaveFileName(this, "Сохранить OCB-профиль", "MsOcFile.ocb", "Профиль MSI OC (*.ocb);;Все файлы (*.*)");
         if (path.isEmpty()) {
             return;
         }
         controller_.saveOcb(path.toStdWString(), compensateCheck_->isChecked());
-        QMessageBox::information(this, "Saved", "OCB profile saved.");
+        QMessageBox::information(this, "Сохранено", "OCB-профиль сохранен.");
     } catch (const std::exception& error) {
-        showError("Save failed", error);
+        showError("Не удалось сохранить", error);
     }
 }
 
@@ -224,7 +224,7 @@ void MainWindow::applyPreset() {
         controller_.applyPreset(presetCombo_->currentText().toStdString());
         refreshFields();
     } catch (const std::exception& error) {
-        showError("Preset failed", error);
+        showError("Не удалось применить пресет", error);
     }
 }
 
@@ -237,7 +237,7 @@ void MainWindow::writeSelectedValue() {
         controller_.writeField(field->id(), parseValue(valueEdit_->text()));
         refreshFields();
     } catch (const std::exception& error) {
-        showError("Write value failed", error);
+        showError("Не удалось записать значение", error);
     }
 }
 
@@ -249,7 +249,7 @@ void MainWindow::resetProfile() {
 void MainWindow::updateSelection() {
     const auto* field = selectedField();
     if (field == nullptr) {
-        selectionLabel_->setText("No field selected");
+        selectionLabel_->setText("Поле не выбрано");
         valueEdit_->clear();
         return;
     }

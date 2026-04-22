@@ -1,4 +1,5 @@
 #include "AppController.hpp"
+#include "ocb/BuildInfo.hpp"
 #include "ocb/ui/MainWindow.hpp"
 
 #include <QApplication>
@@ -6,6 +7,7 @@
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     QApplication::setApplicationName("OCB Studio");
+    QApplication::setApplicationVersion(OCB_BUILD_VERSION);
     QApplication::setOrganizationName("OCB Studio");
 
     ocb::AppController controller;

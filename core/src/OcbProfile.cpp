@@ -15,7 +15,7 @@ namespace {
 std::vector<std::uint8_t> readAllBytes(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary);
     if (!input) {
-        throw OcbException("Failed to open OCB file: " + path.string());
+        throw OcbException("Не удалось открыть OCB-файл: " + path.string());
     }
     return {std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
 }
@@ -23,11 +23,11 @@ std::vector<std::uint8_t> readAllBytes(const std::filesystem::path& path) {
 void writeAllBytes(const std::filesystem::path& path, const std::vector<std::uint8_t>& bytes) {
     std::ofstream output(path, std::ios::binary | std::ios::trunc);
     if (!output) {
-        throw OcbException("Failed to create OCB file: " + path.string());
+        throw OcbException("Не удалось создать OCB-файл: " + path.string());
     }
     output.write(reinterpret_cast<const char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
     if (!output) {
-        throw OcbException("Failed to write OCB file: " + path.string());
+        throw OcbException("Не удалось записать OCB-файл: " + path.string());
     }
 }
 
@@ -74,7 +74,7 @@ std::uint64_t OcbProfile::read(const OcbField& field) const {
     const auto offset = field.fileOffset();
     const auto size = field.sizeBytes();
     if (offset + size > data_.size()) {
-        throw OcbException("Field outside OCB data: " + field.prompt);
+        throw OcbException("Поле находится за пределами OCB-данных: " + field.prompt);
     }
     return readLittleEndian(data_, offset, size);
 }
@@ -87,10 +87,10 @@ void OcbProfile::write(const OcbField& field, std::uint64_t value) {
         : ((std::uint64_t{1} << field.sizeBits) - 1U);
 
     if (value > maxValue) {
-        throw OcbException("Value out of range for " + field.prompt);
+        throw OcbException("Значение вне допустимого диапазона для " + field.prompt);
     }
     if (offset + size > data_.size()) {
-        throw OcbException("Field outside OCB data: " + field.prompt);
+        throw OcbException("Поле находится за пределами OCB-данных: " + field.prompt);
     }
     writeLittleEndian(data_, offset, size, value);
 }
@@ -117,17 +117,17 @@ CheckSums OcbProfile::targetSums() const noexcept {
 
 void OcbProfile::validate() const {
     if (data_.size() < 0x1000) {
-        throw OcbException("File is too small to be an MSI OC Profile.");
+        throw OcbException("Файл слишком мал, чтобы быть профилем MSI OC.");
     }
 
     constexpr std::string_view mos = "$MOS$";
     if (!std::equal(mos.begin(), mos.end(), data_.begin())) {
-        throw OcbException("Missing $MOS$ header.");
+        throw OcbException("Отсутствует заголовок $MOS$.");
     }
 
     constexpr std::array<std::uint8_t, 5> oci{'$', 'O', 'C', 'I', '$'};
     if (std::search(data_.begin(), data_.end(), oci.begin(), oci.end()) == data_.end()) {
-        throw OcbException("Missing $OCI$ section marker.");
+        throw OcbException("Отсутствует маркер секции $OCI$.");
     }
 }
 

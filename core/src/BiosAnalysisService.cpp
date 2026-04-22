@@ -14,7 +14,7 @@ BiosAnalysisResult BiosAnalysisService::analyze(std::span<const std::uint8_t> bi
     auto root = uefiExtractor_.parseImage(biosImage);
     auto setup = uefiExtractor_.findBestSetupModule(root);
     if (!setup.has_value()) {
-        throw OcbException("Setup PE32 module was not found in BIOS image.");
+        throw OcbException("Модуль Setup PE32 не найден в образе BIOS.");
     }
 
     auto questions = ifrExtractor_.extractQuestions(setup->pe32Body);

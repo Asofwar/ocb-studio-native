@@ -1,23 +1,23 @@
-# Changelog
+# Журнал изменений
 
-All notable changes to OCB Studio Native are documented here.
+Здесь документируются все заметные изменения OCB Studio Native.
 
-The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses semantic versioning once public releases begin.
+Формат следует духу [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), а проект использует семантическое версионирование после появления публичных релизов.
 
 ## [0.1.0] - 2026-04-22
 
-### Added
+### Добавлено
 
-- Initial native C++/Qt Widgets desktop application.
-- MSI OCB profile loading, validation, editing, reset, and saving.
-- Checksum-style compensation for saved OCB profiles.
-- Built-in field catalog and conservative preset support.
-- Source-integrated UEFITool-based BIOS parsing wrapper.
-- Native IFR extraction from Setup PE32 modules.
-- IFR-to-OCB field mapping and searchable UI table.
-- Public repository documentation, contribution guidance, security policy, issue templates, and CI.
+- Первое нативное настольное приложение на C++/Qt Widgets.
+- Загрузка, проверка, редактирование, сброс и сохранение MSI OCB-профилей.
+- Компенсация в стиле контрольной суммы для сохраняемых OCB-профилей.
+- Встроенный каталог полей и поддержка консервативных пресетов.
+- Интегрированная из исходников обертка разбора BIOS на базе UEFITool.
+- Нативное извлечение IFR из модулей Setup PE32.
+- Сопоставление IFR с OCB-полями и таблица UI с поиском.
+- Публичная документация репозитория, руководство по участию, политика безопасности, шаблоны issues и CI.
 
-### Notes
+### Примечания
 
-- Public CI currently builds core/tools without proprietary BIOS or OCB fixtures.
-- Firmware editing remains experimental and should be used only with backups and board-specific validation.
+- Публичный CI сейчас собирает `core/tools` без проприетарных fixture-файлов BIOS или OCB.
+- Редактирование firmware остается экспериментальным и должно использоваться только с резервными копиями и проверкой под конкретную плату.
