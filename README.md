@@ -79,6 +79,30 @@ cmake -S . -B build-ui -DOCB_BUILD_UI=ON -DOCB_BUILD_TESTS=ON -DCMAKE_PREFIX_PAT
 cmake --build build-ui --config Release --parallel
 ```
 
+### Self-contained Windows build
+
+MSVC builds use the static runtime (`/MT`) by default via `OCB_STATIC_MSVC_RUNTIME=ON`, so release binaries do not need
+the Visual C++ runtime DLLs next to them.
+
+For a true single-exe Qt UI build, point `CMAKE_PREFIX_PATH` to a static Qt installation and enable the guard:
+
+```powershell
+cmake -S . -B build-static -DOCB_BUILD_UI=ON -DOCB_BUILD_TESTS=OFF -DOCB_REQUIRE_STATIC_QT=ON -DCMAKE_PREFIX_PATH=C:\Qt\6.6.3\msvc2019_64_static
+cmake --build build-static --config Release --parallel
+```
+
+If `OCB_REQUIRE_STATIC_QT=ON` is used with a dynamic Qt package, CMake stops during configuration because that build
+would still require Qt DLLs. With a dynamic Qt package, use `windeployqt` and ship a portable folder instead of a single
+binary.
+
+For the standard dynamic Qt package, the project can build that portable folder automatically:
+
+```powershell
+cmake --build build-ui --config Release --target ocb_studio_portable_zip --parallel
+```
+
+The package is written under `build-ui\dist` and already contains the Qt runtime files needed to launch the app.
+
 На Linux или macOS используйте соответствующий путь установки Qt для `CMAKE_PREFIX_PATH`.
 
 ## Запуск

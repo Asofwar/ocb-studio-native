@@ -11,6 +11,17 @@
 
 namespace ocb::core {
 
+struct OcbProfileMetadata {
+    std::uint64_t fileSize{};
+    std::uint64_t ociOffset{};
+    bool hasMosHeader{};
+    bool hasOciSection{};
+    std::string format;
+    std::string boardName;
+    std::string biosVersion;
+    std::string profileName;
+};
+
 class OcbProfile {
 public:
     OcbProfile() = default;
@@ -29,11 +40,13 @@ public:
     [[nodiscard]] std::span<const std::uint8_t> bytes() const noexcept;
     [[nodiscard]] std::span<const std::uint8_t> originalBytes() const noexcept;
     [[nodiscard]] CheckSums targetSums() const noexcept;
+    [[nodiscard]] const OcbProfileMetadata& metadata() const noexcept;
 
 private:
     std::vector<std::uint8_t> original_;
     std::vector<std::uint8_t> data_;
     CheckSums targetSums_{};
+    OcbProfileMetadata metadata_{};
 
     void validate() const;
 };

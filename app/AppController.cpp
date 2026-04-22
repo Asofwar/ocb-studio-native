@@ -47,6 +47,7 @@ void AppController::openBiosImage(const std::filesystem::path& path) {
     const auto result = analysisService.analyze(biosImage);
 
     catalog_.merge(result.fields);
+    biosMetadata_ = result.metadata;
     biosPath_ = path;
 }
 
@@ -117,6 +118,10 @@ const std::filesystem::path& AppController::ifrPath() const noexcept {
 
 const std::filesystem::path& AppController::biosPath() const noexcept {
     return biosPath_;
+}
+
+const std::optional<core::BiosMetadata>& AppController::biosMetadata() const noexcept {
+    return biosMetadata_;
 }
 
 } // namespace ocb

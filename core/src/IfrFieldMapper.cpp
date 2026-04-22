@@ -29,7 +29,7 @@ std::vector<OcbField> IfrFieldMapper::mapQuestions(
         if (!varStoreBase(question.varStoreName).has_value()) {
             continue;
         }
-        if (question.sizeBits != 8 && question.sizeBits != 16 && question.sizeBits != 32) {
+        if (question.sizeBits != 8 && question.sizeBits != 16 && question.sizeBits != 32 && question.sizeBits != 64) {
             continue;
         }
 

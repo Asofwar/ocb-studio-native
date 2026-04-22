@@ -1,5 +1,7 @@
 #include "ocb/core/OcbProfile.hpp"
 
+#include "MetadataDetection.hpp"
+#include "ocb/core/FieldValidation.hpp"
 #include "ocb/core/OcbException.hpp"
 
 #include <algorithm>
@@ -7,6 +9,7 @@
 #include <fstream>
 #include <iterator>
 #include <limits>
+#include <string_view>
 #include <utility>
 
 namespace ocb::core {
@@ -45,12 +48,43 @@ void writeLittleEndian(std::vector<std::uint8_t>& bytes, std::size_t offset, std
     }
 }
 
+OcbProfileMetadata detectMetadata(std::span<const std::uint8_t> bytes) {
+    OcbProfileMetadata metadata;
+    metadata.fileSize = static_cast<std::uint64_t>(bytes.size());
+
+    constexpr std::string_view mos = "$MOS$";
+    metadata.hasMosHeader = bytes.size() >= mos.size() && std::equal(mos.begin(), mos.end(), bytes.begin());
+
+    constexpr std::array<std::uint8_t, 5> oci{'$', 'O', 'C', 'I', '$'};
+    const auto ociIt = std::search(bytes.begin(), bytes.end(), oci.begin(), oci.end());
+    metadata.hasOciSection = ociIt != bytes.end();
+    metadata.ociOffset = metadata.hasOciSection
+        ? static_cast<std::uint64_t>(std::distance(bytes.begin(), ociIt))
+        : 0;
+
+    if (metadata.hasMosHeader && metadata.hasOciSection) {
+        metadata.format = "MSI OC profile ($MOS$/$OCI$)";
+    } else if (metadata.hasMosHeader) {
+        metadata.format = "MSI OC profile ($MOS$)";
+    } else {
+        metadata.format = "Unknown";
+    }
+
+    const auto strings = detail::extractTextStrings(bytes);
+    metadata.boardName = detail::chooseBoardName(strings);
+    metadata.profileName = detail::chooseProfileName(strings);
+    metadata.biosVersion = detail::firstBiosVersion(strings);
+
+    return metadata;
+}
+
 } // namespace
 
 OcbProfile::OcbProfile(std::vector<std::uint8_t> bytes)
     : original_(std::move(bytes)),
       data_(original_),
-      targetSums_(ChecksumCompensator::compute(original_)) {
+      targetSums_(ChecksumCompensator::compute(original_)),
+      metadata_(detectMetadata(original_)) {
     validate();
 }
 
@@ -82,12 +116,9 @@ std::uint64_t OcbProfile::read(const OcbField& field) const {
 void OcbProfile::write(const OcbField& field, std::uint64_t value) {
     const auto offset = field.fileOffset();
     const auto size = field.sizeBytes();
-    const std::uint64_t maxValue = field.sizeBits == 64
-        ? std::numeric_limits<std::uint64_t>::max()
-        : ((std::uint64_t{1} << field.sizeBits) - 1U);
 
-    if (value > maxValue) {
-        throw OcbException("Значение вне допустимого диапазона для " + field.prompt);
+    if (const auto validation = validateValue(field, value); !validation) {
+        throw OcbException(validation.message);
     }
     if (offset + size > data_.size()) {
         throw OcbException("Поле находится за пределами OCB-данных: " + field.prompt);
@@ -113,6 +144,10 @@ std::span<const std::uint8_t> OcbProfile::originalBytes() const noexcept {
 
 CheckSums OcbProfile::targetSums() const noexcept {
     return targetSums_;
+}
+
+const OcbProfileMetadata& OcbProfile::metadata() const noexcept {
+    return metadata_;
 }
 
 void OcbProfile::validate() const {

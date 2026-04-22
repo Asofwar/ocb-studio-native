@@ -7,14 +7,26 @@
 
 #include <cstdint>
 #include <span>
+#include <string>
 #include <vector>
 
 namespace ocb::core {
+
+struct BiosMetadata {
+    std::uint64_t imageSize{};
+    std::uint64_t setupPe32Size{};
+    std::uint64_t questionCount{};
+    std::uint64_t fieldCount{};
+    std::string boardName;
+    std::string biosVersion;
+    std::string setupPath;
+};
 
 struct BiosAnalysisResult {
     std::vector<tools::ifr::IfrQuestion> questions;
     std::vector<OcbField> fields;
     tools::uefi::SetupModule setupModule;
+    BiosMetadata metadata;
 };
 
 class BiosAnalysisService final {

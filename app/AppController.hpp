@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ocb/core/BiosAnalysisService.hpp"
 #include "ocb/core/FieldCatalog.hpp"
 #include "ocb/core/OcbProfile.hpp"
 
@@ -27,9 +28,11 @@ public:
     [[nodiscard]] const std::filesystem::path& ocbPath() const noexcept;
     [[nodiscard]] const std::filesystem::path& ifrPath() const noexcept;
     [[nodiscard]] const std::filesystem::path& biosPath() const noexcept;
+    [[nodiscard]] const std::optional<core::BiosMetadata>& biosMetadata() const noexcept;
 
 private:
     std::optional<core::OcbProfile> profile_;
+    std::optional<core::BiosMetadata> biosMetadata_;
     core::FieldCatalog catalog_;
     std::filesystem::path ocbPath_;
     std::filesystem::path ifrPath_;
