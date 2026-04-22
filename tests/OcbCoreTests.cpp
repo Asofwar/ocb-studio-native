@@ -6,6 +6,7 @@
 #include "ocb/core/OcbException.hpp"
 #include "ocb/core/OcbProfile.hpp"
 #include "ocb/core/Preset.hpp"
+#include "ocb/core/PresetFile.hpp"
 #include "ocb/tools/ifr/IfrTextParser.hpp"
 #include "ocb/tools/ifr/NativeIfrExtractor.hpp"
 #include "ocb/tools/uefi/UefiExtractor.hpp"
@@ -169,6 +170,90 @@ void testConservativePresetMatchesWorkingTry02() {
         "Суммы в стиле контрольных сумм должны совпадать с загруженным оригинальным профилем");
 }
 
+void testPresetFileRoundTrip() {
+    const ocb::core::Preset preset{
+        "Custom preset",
+        {
+            {"CPU Lite Load", 30},
+            {"Long Duration Power Limit (W)", 200},
+            {"Short Duration Power Limit (W)", 220},
+        }};
+
+    const auto path = std::filesystem::temp_directory_path() / "ocb_studio_preset_roundtrip.ocbpreset";
+    ocb::core::savePresetToFile(path, preset);
+    const auto loaded = ocb::core::loadPresetFromFile(path);
+    std::filesystem::remove(path);
+
+    expect(loaded.name == preset.name, "Preset import/export must preserve the preset name");
+    expect(loaded.valuesByPrompt == preset.valuesByPrompt, "Preset import/export must preserve field values");
+}
+
+void testPresetFileAcceptsStringValues() {
+    const auto path = std::filesystem::temp_directory_path() / "ocb_studio_preset_string_values.ocbpreset";
+    {
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        output << "{\n"
+               << "  \"name\": \"String values\",\n"
+               << "  \"values\": {\n"
+               << "    \"CPU Lite Load\": \"0x1E\"\n"
+               << "  }\n"
+               << "}\n";
+    }
+
+    const auto loaded = ocb::core::loadPresetFromFile(path);
+    std::filesystem::remove(path);
+
+    expect(loaded.valuesByPrompt.at("CPU Lite Load") == 30, "Preset import must accept quoted decimal or hex values");
+}
+
+void testPresetAppliesPromptsWithSpacingVariants() {
+    OcbProfile profile(syntheticProfileBytes());
+    const ocb::core::Preset preset{
+        "Spacing variants",
+        {
+            {"CPU Current Limit(A)", 307},
+            {"Long Duration Power Limit(W)", 180},
+            {"Short Duration Power Limit(W)", 200},
+        }};
+
+    ocb::core::applyPreset(profile, preset);
+
+    expect(profile.read(fieldByPrompt("CPU Current Limit (A)")) == 307, "Preset prompts should tolerate missing spaces before units");
+    expect(profile.read(fieldByPrompt("Long Duration Power Limit (W)")) == 180, "Preset prompts should map PL1 spacing variants");
+    expect(profile.read(fieldByPrompt("Short Duration Power Limit (W)")) == 200, "Preset prompts should map PL2 spacing variants");
+}
+
+void testPresetAppliesCommonAliasPrompts() {
+    OcbProfile profile(syntheticProfileBytes());
+    const ocb::core::Preset preset{
+        "Alias prompts",
+        {
+            {"Core CEP Enable", 0},
+            {"Core ICC Unlimited Mode", 0},
+        }};
+
+    ocb::core::applyPreset(profile, preset);
+
+    expect(profile.read(fieldByPrompt("IA CEP Enable")) == 0, "Core CEP alias should map to IA CEP Enable");
+    expect(profile.read(fieldByPrompt("IA ICC Unlimited Mode")) == 0, "Core ICC alias should map to IA ICC Unlimited Mode");
+}
+
+void testPresetAppliesAgainstExtendedCatalog() {
+    OcbProfile profile(syntheticProfileBytes());
+    const std::vector<OcbField> fields{
+        {"Long Duration Maintained", ocb::core::FieldKind::Numeric, "CpuSetup", 0x20, 16},
+    };
+    const ocb::core::Preset preset{
+        "Extended catalog",
+        {
+            {"Long Duration Maintained(s)", 56},
+        }};
+
+    ocb::core::applyPreset(profile, fields, preset);
+
+    expect(profile.read(fields.front()) == 56, "Preset application should use fields from the active catalog");
+}
+
 void testInvalidInputRejected() {
     bool rejected = false;
     try {
@@ -287,6 +372,11 @@ int main() {
         testBiosAnalysisMetadata();
         testReadKnownValues();
         testConservativePresetMatchesWorkingTry02();
+        testPresetFileRoundTrip();
+        testPresetFileAcceptsStringValues();
+        testPresetAppliesPromptsWithSpacingVariants();
+        testPresetAppliesCommonAliasPrompts();
+        testPresetAppliesAgainstExtendedCatalog();
         testInvalidInputRejected();
         testFieldValidationRejectsBadOptions();
         testProfileRejectsInvalidOneOfValue();

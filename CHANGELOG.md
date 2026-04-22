@@ -1,23 +1,32 @@
-# Журнал изменений
+# Changelog
 
-Здесь документируются все заметные изменения OCB Studio Native.
+Notable changes to OCB Studio Native are documented here.
 
-Формат следует духу [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), а проект использует семантическое версионирование после появления публичных релизов.
+The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project will use semantic versioning after public releases begin.
+
+## Unreleased
+
+### Changed
+
+- Replaced the former desktop GUI with a Dear ImGui + GLFW/OpenGL desktop application.
+- Added a command line fallback for scripting.
+- Removed CMake and CI requirements for a Qt SDK or Qt runtime packaging.
+- Added static Dear ImGui/GLFW dependency builds through CMake FetchContent.
+- Kept preset import/export as core C++ functionality through `.ocbpreset` JSON files.
 
 ## [0.1.0] - 2026-04-22
 
-### Добавлено
+### Added
 
-- Первое нативное настольное приложение на C++/Qt Widgets.
-- Загрузка, проверка, редактирование, сброс и сохранение MSI OCB-профилей.
-- Компенсация в стиле контрольной суммы для сохраняемых OCB-профилей.
-- Встроенный каталог полей и поддержка консервативных пресетов.
-- Интегрированная из исходников обертка разбора BIOS на базе UEFITool.
-- Нативное извлечение IFR из модулей Setup PE32.
-- Сопоставление IFR с OCB-полями и таблица UI с поиском.
-- Публичная документация репозитория, руководство по участию, политика безопасности, шаблоны issues и CI.
+- Native C++ core for loading, validating, editing, resetting, and saving MSI OCB profile files.
+- Checksum compensation for saved OCB profiles.
+- Built-in field catalog and conservative presets.
+- Integrated BIOS parsing wrapper based on UEFITool source fragments.
+- Native IFR extraction from Setup PE32 modules.
+- IFR-to-OCB field mapping.
+- Public repository documentation, contribution guide, security policy, issue templates, and CI.
 
-### Примечания
+### Notes
 
-- Публичный CI сейчас собирает `core/tools` без проприетарных fixture-файлов BIOS или OCB.
-- Редактирование firmware остается экспериментальным и должно использоваться только с резервными копиями и проверкой под конкретную плату.
+- Public CI builds source targets without proprietary BIOS or OCB fixture files.
+- Firmware editing remains experimental and should be used only with verified backups.

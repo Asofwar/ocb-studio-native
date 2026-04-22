@@ -1,4 +1,4 @@
-name: Непрерывная интеграция
+name: CI
 
 on:
   push:
@@ -9,13 +9,9 @@ on:
     types: [published]
   workflow_dispatch:
 
-env:
-  QT_VERSION: 6.6.3
-  QT_ARCH: win64_msvc2019_64
-
 jobs:
-  build-core-tools:
-    name: Сборка core/tools (${{ matrix.os }})
+  build:
+    name: Build (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -23,29 +19,35 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
-      - name: Получение исходников
+      - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Конфигурация
-        run: cmake -S . -B build -DOCB_BUILD_UI=OFF -DOCB_BUILD_TESTS=OFF
+      - name: Install Linux GUI build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorg-dev libglu1-mesa-dev pkg-config
 
-      - name: Сборка
+      - name: Configure
+        run: cmake -S . -B build -DOCB_BUILD_APP=ON -DOCB_BUILD_TESTS=OFF
+
+      - name: Build
         run: cmake --build build --config Release --parallel
 
   package-windows-release:
-    name: Сборка релиза Windows
+    name: Package Windows release
     runs-on: windows-latest
     if: github.event_name == 'release'
     permissions:
       contents: write
 
     steps:
-      - name: Получение исходников
+      - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Подготовка версии
+      - name: Prepare version
         id: version
         shell: pwsh
         run: |
@@ -61,28 +63,20 @@ jobs:
           "sha=$sha" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "date=$date" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-      - name: Установка Qt
-        shell: pwsh
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install aqtinstall
-          python -m aqt install-qt windows desktop "$env:QT_VERSION" "$env:QT_ARCH" -O "$env:RUNNER_TEMP\Qt"
-
-      - name: Конфигурация приложения
+      - name: Configure
         shell: pwsh
         run: |
           cmake -S . -B build-release `
-            "-DOCB_BUILD_UI=ON" `
+            "-DOCB_BUILD_APP=ON" `
             "-DOCB_BUILD_TESTS=OFF" `
             "-DOCB_BUILD_VERSION=${{ steps.version.outputs.version }}" `
             "-DOCB_BUILD_GIT_SHA=${{ steps.version.outputs.sha }}" `
-            "-DOCB_BUILD_DATE=${{ steps.version.outputs.date }}" `
-            "-DCMAKE_PREFIX_PATH=$env:RUNNER_TEMP\Qt\$env:QT_VERSION\$env:QT_ARCH"
+            "-DOCB_BUILD_DATE=${{ steps.version.outputs.date }}"
 
-      - name: Сборка приложения
+      - name: Build
         run: cmake --build build-release --config Release --parallel
 
-      - name: Сборка информации о релизе
+      - name: Prepare release info
         shell: pwsh
         run: |
           $releaseDir = Join-Path $env:RUNNER_TEMP "release-info"
@@ -95,13 +89,13 @@ jobs:
 
           $info = @(
             "OCB Studio Native"
-            "Версия: $version"
-            "Тег: $tag"
+            "Version: $version"
+            "Tag: $tag"
             "Commit: $sha"
-            "Дата сборки UTC: $date"
+            "Build date UTC: $date"
             "Workflow run: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
             "Repository: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY"
-            "Qt: $env:QT_VERSION $env:QT_ARCH"
+            "Runtime dependencies: none beyond the OS C/C++ runtime"
           )
           $info | Set-Content -Path "$releaseDir\release-info.txt" -Encoding utf8
 
@@ -113,11 +107,11 @@ jobs:
             $section = [regex]::Match($changelog, "(?ms)^## \[$escapedTag\].*?(?=^## \[|\z)").Value
           }
           if ([string]::IsNullOrWhiteSpace($section)) {
-            $section = "## $tag`n`nДля этого тега отдельная секция в CHANGELOG.md не найдена."
+            $section = "## $tag`n`nNo dedicated CHANGELOG.md section was found for this tag."
           }
           $section | Set-Content -Path "$releaseDir\release-notes.md" -Encoding utf8
 
-      - name: Упаковка приложения
+      - name: Package
         shell: pwsh
         run: |
           $dist = Join-Path $env:RUNNER_TEMP "ocb-studio-native-windows"
@@ -126,10 +120,9 @@ jobs:
           Copy-Item "build-release\app\Release\ocb_studio.exe" $dist
           Copy-Item "$releaseInfo\release-info.txt" $dist
           Copy-Item "$releaseInfo\release-notes.md" $dist
-          & "$env:RUNNER_TEMP\Qt\$env:QT_VERSION\$env:QT_ARCH\bin\windeployqt.exe" --release --dir $dist "$dist\ocb_studio.exe"
           Compress-Archive -Path "$dist\*" -DestinationPath "ocb-studio-native-windows-${{ steps.version.outputs.safe_tag }}.zip" -Force
 
-      - name: Загрузка архива в релиз
+      - name: Upload release assets
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}

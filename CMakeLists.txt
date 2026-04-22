@@ -18,15 +18,14 @@ if(MSVC)
 endif()
 
 option(OCB_STATIC_MSVC_RUNTIME "Link the MSVC runtime statically with /MT" ON)
-option(OCB_REQUIRE_STATIC_QT "Require a static Qt build for single-exe UI builds" OFF)
 
 if(MSVC AND OCB_STATIC_MSVC_RUNTIME)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-set(OCB_BUILD_VERSION "${PROJECT_VERSION}" CACHE STRING "Версия сборки OCB Studio")
-set(OCB_BUILD_GIT_SHA "unknown" CACHE STRING "Git SHA сборки OCB Studio")
-set(OCB_BUILD_DATE "unknown" CACHE STRING "Дата сборки OCB Studio")
+set(OCB_BUILD_VERSION "${PROJECT_VERSION}" CACHE STRING "OCB Studio build version")
+set(OCB_BUILD_GIT_SHA "unknown" CACHE STRING "OCB Studio build Git SHA")
+set(OCB_BUILD_DATE "unknown" CACHE STRING "OCB Studio build date")
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BuildInfo.hpp.in
@@ -40,14 +39,13 @@ target_include_directories(ocb_build_info
     ${CMAKE_CURRENT_BINARY_DIR}/generated/include
 )
 
-option(OCB_BUILD_TESTS "Собирать тесты OCB Studio" ON)
-option(OCB_BUILD_UI "Собирать интерфейс Qt Widgets" ON)
+option(OCB_BUILD_TESTS "Build OCB Studio tests" ON)
+option(OCB_BUILD_APP "Build OCB Studio command line tool" ON)
 
 add_subdirectory(tools)
 add_subdirectory(core)
 
-if(OCB_BUILD_UI)
-  add_subdirectory(ui)
+if(OCB_BUILD_APP)
   add_subdirectory(app)
 endif()
 

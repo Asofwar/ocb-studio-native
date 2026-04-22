@@ -65,6 +65,13 @@ void AppController::applyPreset(const std::string& presetName) {
     core::applyPreset(*profile_, presetName);
 }
 
+void AppController::applyPreset(const core::Preset& preset) {
+    if (!profile_) {
+        throw core::OcbException("OCB-профиль не загружен.");
+    }
+    core::applyPreset(*profile_, catalog_.fields(), preset);
+}
+
 void AppController::writeField(const std::string& fieldId, std::uint64_t value) {
     if (!profile_) {
         throw core::OcbException("OCB-профиль не загружен.");

@@ -8,6 +8,7 @@ add_library(ocb_core STATIC
   src/MetadataDetection.cpp
   src/OcbProfile.cpp
   src/Preset.cpp
+  src/PresetFile.cpp
 )
 
 target_include_directories(ocb_core

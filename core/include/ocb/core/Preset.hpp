@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <map>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -16,6 +17,7 @@ struct Preset {
 
 [[nodiscard]] const std::vector<Preset>& builtinPresets();
 void applyPreset(OcbProfile& profile, const Preset& preset);
+void applyPreset(OcbProfile& profile, std::span<const OcbField> fields, const Preset& preset);
 void applyPreset(OcbProfile& profile, const std::string& presetName);
 
 } // namespace ocb::core

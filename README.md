@@ -1,164 +1,142 @@
 # OCB Studio Native
 
 [![CI](https://github.com/Asofwar/ocb-studio-native/actions/workflows/ci.yml/badge.svg)](https://github.com/Asofwar/ocb-studio-native/actions/workflows/ci.yml)
-[![Лицензия: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-Нативный настольный инструмент для просмотра файлов профилей разгона MSI и сопоставления их с полями BIOS IFR Setup.
+OCB Studio Native is a C++20 Dear ImGui desktop tool, command line fallback, and library for inspecting and editing MSI overclocking profile files (`MsOcFile.ocb`). It can apply built-in presets, import/export preset files, write individual field values, compensate checksums, and extend the field catalog from BIOS IFR data.
 
-## Что умеет
+The project intentionally has no Qt, Electron, or webview dependency. The GUI is built with Dear ImGui, GLFW, and OpenGL; CMake fetches and builds Dear ImGui/GLFW as static libraries. Firmware parsing and IFR extraction are integrated through local C++ wrappers around vendored source code.
 
-OCB Studio Native - это настольное приложение на C++/Qt для работы с профилями разгона MSI `MsOcFile.ocb`. Оно может открывать OCB-профиль, показывать известные поля настройки, применять консервативные пресеты, записывать значения полей, компенсировать контрольные суммы профиля и расширять каталог полей, извлекая формы IFR Setup из образа BIOS.
+## Features
 
-Проект намеренно сделан нативным: без Electron, без webview и без запуска отдельных firmware-утилит через shell для основного пути извлечения. Разбор UEFI и извлечение IFR интегрированы из исходников и закрыты локальными C++-интерфейсами проекта.
+- Load, validate, edit, and save MSI OCB profile files.
+- Apply built-in presets or presets imported from `.ocbpreset` / JSON files.
+- Export built-in presets to portable preset files.
+- Write individual field values by field id or prompt.
+- Compensate OCB checksums for BIOS-accepted output.
+- Analyze BIOS images through the integrated UEFI/IFR pipeline.
+- Build with CMake using a C++20 compiler, the OS toolchain, and statically linked Dear ImGui/GLFW.
 
-## Для кого
+## Safety
 
-Проект предназначен для исследователей прошивок, опытных пользователей материнских плат, энтузиастов BIOS-моддинга и разработчиков, которым нужна поддерживаемая C++-база для автоматизации правок OCB-профилей. Это не поддерживаемая производителем утилита прошивки, и она не прошивает firmware.
+Firmware and overclocking changes can make a system unstable or unbootable. Treat generated profiles as experimental, keep verified backups, and apply only changes you understand. This project provides tooling; it does not guarantee that a specific board, firmware version, or profile will accept an edited file.
 
-## Предупреждение о безопасности
-
-Изменения firmware и конфигурации разгона могут сделать систему нестабильной или незагружаемой. Считайте сгенерированные профили экспериментальными, храните проверенные резервные копии и применяйте только те изменения, которые понимаете. Проект предоставляет инструменты; он не гарантирует, что конкретная плата, версия firmware или профиль примет измененный файл.
-
-## Ключевые возможности
-
-- Нативный настольный интерфейс Qt Widgets.
-- Библиотека ядра на C++20 для загрузки, проверки, редактирования и сохранения MSI OCB-профилей.
-- Компенсация в стиле контрольной суммы для OCB-файлов, принимаемых BIOS.
-- Встроенный каталог полей и поддержка пресетов.
-- Конвейер анализа BIOS: разбор UEFI-образа, поиск Setup PE32, нативное извлечение IFR-вопросов и сопоставление IFR с OCB-полями.
-- Интеграция исходников фрагментов движка UEFITool и логики Universal IFR Extractor.
-- Сборка через CMake с модульными целями `core`, `tools`, `ui` и `app`.
-
-## Архитектура
+## Layout
 
 ```text
-app/      точка входа Qt-приложения и связующий контроллер
-core/     модель OCB-профиля, каталог полей, пресеты, контрольные суммы, сервис анализа BIOS
-tools/    обертки над firmware-инструментами, интегрированными из исходников
-  ifr/      модель IFR, текстовый парсер, нативный IFR-экстрактор
-  uefitool/ обертка парсера дерева UEFI firmware поверх vendored-исходников UEFITool
-ui/       представления Qt Widgets и табличная модель
-tests/    легковесный нативный тестовый исполняемый файл
+app/      Dear ImGui executable, command line fallback, and application controller
+core/     OCB profile model, fields, presets, preset files, checksums, BIOS analysis
+tools/    C++ wrappers around integrated firmware tools
+tests/    native test executable
 ```
 
-Высокоуровневый поток выполнения:
+## Requirements
 
-```text
-Образ BIOS -> парсер на базе UEFITool -> тело Setup PE32 -> нативный IFR-экстрактор
-           -> IFR-вопросы -> сопоставитель полей -> редактируемый каталог OCB-полей
+- CMake 3.24 or newer.
+- A C++20 compiler:
+  - MSVC 2022 on Windows.
+  - Current Clang or GCC on Linux.
+  - AppleClang on macOS.
 
-MsOcFile.ocb -> модель OCB-профиля -> запись полей/пресеты -> компенсация контрольной суммы -> сохраненный OCB
-```
+No Qt SDK is required. The app uses Dear ImGui `v1.92.7` and GLFW `3.4` through CMake `FetchContent`.
 
-## Требования
-
-- CMake 3.24 или новее.
-- Компилятор с поддержкой C++20:
-  - MSVC 2022 на Windows.
-  - Актуальный Clang или GCC на Linux.
-  - AppleClang на macOS.
-- Qt 6 Widgets для настольного интерфейса.
-
-Сборку `core/tools` можно выполнить без Qt, отключив цель UI.
-
-## Сборка
-
-### Только ядро и инструменты
+## Build
 
 ```powershell
-cmake -S . -B build -DOCB_BUILD_UI=OFF -DOCB_BUILD_TESTS=OFF
+cmake -S . -B build -DOCB_BUILD_APP=ON -DOCB_BUILD_TESTS=ON
 cmake --build build --config Release --parallel
+ctest --test-dir build -C Release --output-on-failure
 ```
 
-### Полное настольное Qt-приложение
-
-Если Qt не находится глобально, передайте путь CMake prefix для Qt:
+For a library/tools-only build:
 
 ```powershell
-cmake -S . -B build-ui -DOCB_BUILD_UI=ON -DOCB_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=C:\Qt\6.6.3\msvc2019_64
-cmake --build build-ui --config Release --parallel
+cmake -S . -B build-core -DOCB_BUILD_APP=OFF -DOCB_BUILD_TESTS=OFF
+cmake --build build-core --config Release --parallel
 ```
 
-### Self-contained Windows build
+MSVC builds use the static runtime (`/MT`) by default via `OCB_STATIC_MSVC_RUNTIME=ON`, so release binaries do not need Visual C++ runtime DLLs next to them.
 
-MSVC builds use the static runtime (`/MT`) by default via `OCB_STATIC_MSVC_RUNTIME=ON`, so release binaries do not need
-the Visual C++ runtime DLLs next to them.
+On Linux, install the usual X11/OpenGL development packages for GLFW before configuring, for example `xorg-dev`, `libglu1-mesa-dev`, and `pkg-config` on Ubuntu.
 
-For a true single-exe Qt UI build, point `CMAKE_PREFIX_PATH` to a static Qt installation and enable the guard:
+## GUI Usage
+
+Run the executable without arguments:
 
 ```powershell
-cmake -S . -B build-static -DOCB_BUILD_UI=ON -DOCB_BUILD_TESTS=OFF -DOCB_REQUIRE_STATIC_QT=ON -DCMAKE_PREFIX_PATH=C:\Qt\6.6.3\msvc2019_64_static
-cmake --build build-static --config Release --parallel
+.\build\app\Release\ocb_studio.exe
 ```
 
-If `OCB_REQUIRE_STATIC_QT=ON` is used with a dynamic Qt package, CMake stops during configuration because that build
-would still require Qt DLLs. With a dynamic Qt package, use `windeployqt` and ship a portable folder instead of a single
-binary.
+The Dear ImGui interface provides OCB/BIOS/IFR file loading, OCB saving, checksum compensation, preset import/export, preset application, field search, and direct field editing.
 
-For the standard dynamic Qt package, the project can build that portable folder automatically:
+## CLI Usage
+
+List built-in presets:
 
 ```powershell
-cmake --build build-ui --config Release --target ocb_studio_portable_zip --parallel
+.\build\app\Release\ocb_studio.exe --list-presets
 ```
 
-The package is written under `build-ui\dist` and already contains the Qt runtime files needed to launch the app.
-
-На Linux или macOS используйте соответствующий путь установки Qt для `CMAKE_PREFIX_PATH`.
-
-## Запуск
-
-После полной сборки UI запустите сгенерированный `ocb_studio` из выходного каталога цели `app`. Для релизных сборок Windows обычно это:
+Export a built-in preset:
 
 ```powershell
-.\build-ui\app\Release\ocb_studio.exe
+.\build\app\Release\ocb_studio.exe --export-preset "Консервативный 200/220W 307A" --output conservative.ocbpreset
 ```
 
-Для переносимой папки Windows разверните runtime-файлы Qt с помощью `windeployqt`:
+Apply a built-in preset:
 
 ```powershell
-windeployqt --release --dir dist .\build-ui\app\Release\ocb_studio.exe
+.\build\app\Release\ocb_studio.exe --input MsOcFile.ocb --output MsOcFile.patched.ocb --preset "Консервативный 200/220W 307A"
 ```
 
-## Пример рабочего процесса
-
-1. Откройте `MsOcFile.ocb`.
-2. Откройте образ BIOS через `Открыть BIOS`, чтобы извлечь поля Setup IFR.
-3. Найдите настройку, например `CPU Lite Load`, `CEP` или `Power Limit`.
-4. Выберите поле и запишите новое числовое значение.
-5. Сохраните OCB-профиль с включенной компенсацией контрольной суммы.
-6. Осторожно протестируйте сгенерированный профиль на целевой плате.
-
-## Тесты
-
-Тестовый исполняемый файл намеренно простой. Некоторые интеграционные проверки зависят от локальных fixture-файлов BIOS/OCB, которые не входят в публичный репозиторий. В публичном CI проект сейчас выполняет сборку исходников целей `core/tools` без проприетарных fixture-файлов.
+Apply an imported preset file:
 
 ```powershell
-cmake -S . -B build-test -DOCB_BUILD_UI=OFF -DOCB_BUILD_TESTS=ON
+.\build\app\Release\ocb_studio.exe --input MsOcFile.ocb --output MsOcFile.patched.ocb --preset-file conservative.ocbpreset
+```
+
+Write one field:
+
+```powershell
+.\build\app\Release\ocb_studio.exe --input MsOcFile.ocb --output MsOcFile.patched.ocb --write "CPU Lite Load" 30
+```
+
+Add `--no-compensate` if you need raw output without checksum compensation.
+
+## Preset File Format
+
+Preset files are JSON objects:
+
+```json
+{
+  "format": "OCB Studio Preset",
+  "version": 1,
+  "name": "Example",
+  "values": {
+    "Long Duration Power Limit (W)": 200,
+    "Short Duration Power Limit (W)": 220,
+    "CPU Lite Load": "0x1E"
+  }
+}
+```
+
+Values may be non-negative decimal integers or quoted decimal/hex strings.
+
+## Tests
+
+Some integration checks depend on local BIOS/OCB fixture files. Public CI builds the source targets without proprietary fixture data.
+
+```powershell
+cmake -S . -B build-test -DOCB_BUILD_APP=ON -DOCB_BUILD_TESTS=ON
 cmake --build build-test --config Release --parallel
 ctest --test-dir build-test -C Release --output-on-failure
 ```
 
-## Сторонние исходники
+## Third-party Sources
 
-В репозиторий включены выбранные исходники из:
+The repository includes selected source fragments from:
 
-- [UEFITool](https://github.com/LongSoft/UEFITool), лицензия в стиле BSD.
+- [UEFITool](https://github.com/LongSoft/UEFITool), BSD-style license.
 - [Universal IFR Extractor](https://github.com/donovan6000/Universal-IFR-Extractor), GPLv3.
 
-Поскольку Universal IFR Extractor интегрирован из исходников GPLv3, проект распространяется под `GPL-3.0-only`.
-
-## Дорожная карта
-
-- Улучшить определение платы/профиля и отображение метаданных.
-- Добавить более богатую проверку полей и редакторы значений для распространенных типов IFR-опций.
-- Добавить импорт/экспорт файлов пресетов.
-- Добавить пакетные релизы для Windows, Linux и macOS.
-- Добавить parser-тесты без fixture-файлов, подходящие для публичного CI.
-
-## Участие в разработке
-
-Вклады приветствуются, если они сохраняют проект нативным, поддерживаемым и осторожным в вопросах безопасности firmware. Перед открытием pull request прочитайте [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Лицензия
-
-OCB Studio Native распространяется под [GPL-3.0-only](LICENSE). Сторонние исходники сохраняют свои оригинальные уведомления об авторских правах и лицензиях.
+Because Universal IFR Extractor is integrated from GPLv3 sources, this project is distributed under `GPL-3.0-only`.

@@ -3,8 +3,38 @@
 #include "ocb/core/OcbException.hpp"
 
 #include <algorithm>
+#include <cctype>
 
 namespace ocb::core {
+namespace {
+
+std::string normalizedPrompt(std::string_view prompt) {
+    std::string normalized;
+    normalized.reserve(prompt.size());
+
+    for (unsigned char ch : prompt) {
+        if (std::isalnum(ch)) {
+            normalized.push_back(static_cast<char>(std::tolower(ch)));
+        }
+    }
+    return normalized;
+}
+
+std::string canonicalPresetPrompt(std::string_view prompt) {
+    auto normalized = normalizedPrompt(prompt);
+    if (normalized == "corecepenable") {
+        return "iacepenable";
+    }
+    if (normalized == "coreiccenable" || normalized == "coreiccunlimitedmode") {
+        return "iaiccunlimitedmode";
+    }
+    if (normalized == "longdurationmaintaineds") {
+        return "longdurationmaintained";
+    }
+    return normalized;
+}
+
+} // namespace
 
 const std::vector<Preset>& builtinPresets() {
     static const std::vector<Preset> presets{
@@ -58,18 +88,21 @@ const std::vector<Preset>& builtinPresets() {
     return presets;
 }
 
-void applyPreset(OcbProfile& profile, const Preset& preset) {
-    const auto& fields = builtinFields();
-
+void applyPreset(OcbProfile& profile, std::span<const OcbField> fields, const Preset& preset) {
     for (const auto& [prompt, value] : preset.valuesByPrompt) {
+        const auto normalized = canonicalPresetPrompt(prompt);
         const auto field = std::find_if(fields.begin(), fields.end(), [&](const OcbField& candidate) {
-            return candidate.prompt == prompt;
+            return candidate.prompt == prompt || canonicalPresetPrompt(candidate.prompt) == normalized;
         });
         if (field == fields.end()) {
             throw OcbException("Пресет ссылается на неизвестное поле: " + prompt);
         }
         profile.write(*field, value);
     }
+}
+
+void applyPreset(OcbProfile& profile, const Preset& preset) {
+    applyPreset(profile, builtinFields(), preset);
 }
 
 void applyPreset(OcbProfile& profile, const std::string& presetName) {

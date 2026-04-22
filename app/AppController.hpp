@@ -3,6 +3,7 @@
 #include "ocb/core/BiosAnalysisService.hpp"
 #include "ocb/core/FieldCatalog.hpp"
 #include "ocb/core/OcbProfile.hpp"
+#include "ocb/core/Preset.hpp"
 
 #include <filesystem>
 #include <optional>
@@ -17,6 +18,7 @@ public:
     void openBiosImage(const std::filesystem::path& path);
     void saveOcb(const std::filesystem::path& path, bool compensateChecksums) const;
     void applyPreset(const std::string& presetName);
+    void applyPreset(const core::Preset& preset);
     void writeField(const std::string& fieldId, std::uint64_t value);
     void resetProfile();
 
