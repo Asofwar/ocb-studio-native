@@ -1,0 +1,14 @@
+* text=auto
+
+*.cpp text eol=crlf
+*.hpp text eol=crlf
+*.h text eol=crlf
+*.c text eol=crlf
+*.cmake text eol=crlf
+CMakeLists.txt text eol=crlf
+*.md text eol=crlf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+tools/uefitool/upstream/** linguist-vendored
+tools/ifr/upstream-universal/** linguist-vendored
