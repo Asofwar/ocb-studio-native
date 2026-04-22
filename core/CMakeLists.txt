@@ -3,7 +3,9 @@ add_library(ocb_core STATIC
   src/BiosAnalysisService.cpp
   src/ChecksumCompensator.cpp
   src/FieldCatalog.cpp
+  src/FieldValidation.cpp
   src/IfrFieldMapper.cpp
+  src/MetadataDetection.cpp
   src/OcbProfile.cpp
   src/Preset.cpp
 )

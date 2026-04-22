@@ -54,7 +54,7 @@ std::size_t OcbField::fileOffset() const {
 }
 
 std::size_t OcbField::sizeBytes() const {
-    if (sizeBits != 8 && sizeBits != 16 && sizeBits != 32) {
+    if (sizeBits != 8 && sizeBits != 16 && sizeBits != 32 && sizeBits != 64) {
         throw OcbException("Неподдерживаемая ширина поля: " + std::to_string(sizeBits));
     }
     return sizeBits / 8;
