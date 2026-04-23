@@ -9,5 +9,3 @@ CMakeLists.txt text eol=crlf
 *.md text eol=crlf
 *.yml text eol=lf
 *.yaml text eol=lf
-
-tools/uefitool/upstream/** linguist-vendored

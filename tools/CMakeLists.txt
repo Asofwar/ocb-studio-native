@@ -1,2 +1,2 @@
 add_subdirectory(ifr)
-add_subdirectory(uefitool)
+add_subdirectory(uefi)

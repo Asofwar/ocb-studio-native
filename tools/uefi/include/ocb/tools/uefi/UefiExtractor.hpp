@@ -17,7 +17,7 @@ public:
     [[nodiscard]] virtual std::optional<SetupModule> findBestSetupModule(const FirmwareNode& root) const = 0;
 };
 
-class UefiToolExtractor final : public UefiExtractor {
+class NativeUefiExtractor final : public UefiExtractor {
 public:
     [[nodiscard]] FirmwareNode parseImage(std::span<const std::uint8_t> image) const override;
     [[nodiscard]] std::optional<SetupModule> findBestSetupModule(const FirmwareNode& root) const override;

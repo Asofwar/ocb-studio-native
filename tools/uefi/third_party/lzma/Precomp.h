@@ -23,7 +23,7 @@
 
 #include "Compiler.h"
 
-// UEFITool: use single-threaded LzFind
+// Use the single-threaded LzFind path.
 #define Z7_ST
 
 #ifdef _MSC_VER

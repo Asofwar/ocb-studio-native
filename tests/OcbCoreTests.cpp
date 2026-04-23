@@ -440,7 +440,7 @@ void testIfrQuestionsMapIntoFieldCatalog() {
 
 void testUefiExtractorFindsSetupPe32() {
     const auto bios = readAll(testDataDir() / "E7D89IMS.A91");
-    const ocb::tools::uefi::UefiToolExtractor extractor;
+    const ocb::tools::uefi::NativeUefiExtractor extractor;
     const auto tree = extractor.parseImage(bios);
     const auto setup = extractor.findBestSetupModule(tree);
 
@@ -450,7 +450,7 @@ void testUefiExtractorFindsSetupPe32() {
 
 void testNativeIfrExtractorReadsSetupPe32() {
     const auto bios = readAll(testDataDir() / "E7D89IMS.A91");
-    const ocb::tools::uefi::UefiToolExtractor uefiExtractor;
+    const ocb::tools::uefi::NativeUefiExtractor uefiExtractor;
     const auto tree = uefiExtractor.parseImage(bios);
     const auto setup = uefiExtractor.findBestSetupModule(tree);
     expect(setup.has_value(), "UEFI-экстрактор должен найти модуль Setup PE32");

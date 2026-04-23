@@ -41,7 +41,7 @@ void AppController::openBiosImage(const std::filesystem::path& path) {
         std::istreambuf_iterator<char>(input),
         std::istreambuf_iterator<char>()};
 
-    const tools::uefi::UefiToolExtractor uefiExtractor;
+    const tools::uefi::NativeUefiExtractor uefiExtractor;
     const tools::ifr::NativeIfrExtractor ifrExtractor;
     const core::BiosAnalysisService analysisService(uefiExtractor, ifrExtractor);
     const auto result = analysisService.analyze(biosImage);
