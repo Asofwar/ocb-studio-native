@@ -29,8 +29,8 @@ public:
 
     static OcbProfile loadFromFile(const std::filesystem::path& path);
 
-    void saveToFile(const std::filesystem::path& path, bool compensateChecksums = true) const;
-    [[nodiscard]] std::vector<std::uint8_t> exportBytes(bool compensateChecksums = true) const;
+    void saveToFile(const std::filesystem::path& path, bool compensateChecksums = false) const;
+    [[nodiscard]] std::vector<std::uint8_t> exportBytes(bool compensateChecksums = false) const;
 
     [[nodiscard]] std::uint64_t read(const OcbField& field) const;
     void write(const OcbField& field, std::uint64_t value);

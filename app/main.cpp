@@ -45,7 +45,7 @@ struct CliOptions {
     std::optional<std::filesystem::path> output;
     std::optional<std::string> presetName;
     std::optional<std::filesystem::path> presetFile;
-    bool compensateChecksums{true};
+    bool compensateChecksums{false};
 };
 
 struct GuiState {
@@ -62,7 +62,7 @@ struct GuiState {
     std::array<char, pathBufferSize> search{};
     std::array<char, valueBufferSize> value{};
     int selectedPreset{};
-    bool compensateChecksums{true};
+    bool compensateChecksums{false};
 };
 
 void setBuffer(std::array<char, pathBufferSize>& buffer, const std::string& value) {
@@ -215,7 +215,8 @@ void printHelp(std::ostream& out) {
         << "  ocb_studio --input <MsOcFile.ocb> --output <out.ocb> --preset-file <file.ocbpreset>\n"
         << "  ocb_studio --input <MsOcFile.ocb> --output <out.ocb> --write <field-id-or-prompt> <value>\n\n"
         << "Options:\n"
-        << "  --no-compensate       Save without checksum compensation.\n"
+        << "  --compensate          Save with legacy checksum compensation.\n"
+        << "  --no-compensate       Alias for the default behavior.\n"
         << "  --version             Print version.\n"
         << "  --help                Print this help.\n";
 }
@@ -525,6 +526,8 @@ int runCli(std::vector<std::string> args) {
             const auto field = requireValue(args, i, arg);
             const auto value = parseUnsigned(requireValue(args, i, arg));
             writeRequest = {field, value};
+        } else if (arg == "--compensate") {
+            options.compensateChecksums = true;
         } else if (arg == "--no-compensate") {
             options.compensateChecksums = false;
         } else {
@@ -665,7 +668,7 @@ void renderTopBar(GuiState& state) {
         }
     }
     ImGui::SameLine();
-    ImGui::Checkbox("Compensate checksums", &state.compensateChecksums);
+    ImGui::Checkbox("Legacy checksum compensation", &state.compensateChecksums);
     ImGui::SameLine();
     ImGui::BeginDisabled(!state.controller.hasProfile());
     if (ImGui::Button("Save OCB")) {

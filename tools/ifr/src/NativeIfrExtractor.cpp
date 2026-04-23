@@ -283,6 +283,14 @@ void assignString(std::vector<std::string>& strings, std::uint32_t& currentId, s
     if (listLength < 24 || listLength > view.bytes.size() - listBegin) {
         return false;
     }
+    if (!view.has(listBegin + 20, 4)) {
+        return false;
+    }
+    const auto firstPackageLength = view.u24(listBegin + 20);
+    const auto firstPackageType = view.u8(listBegin + 23);
+    if (firstPackageLength < 4 || firstPackageLength > listLength - 20 || !isKnownPackageType(firstPackageType)) {
+        return false;
+    }
 
     const auto listEnd = listBegin + listLength;
     auto offset = listBegin + 20;
@@ -320,11 +328,15 @@ void assignString(std::vector<std::string>& strings, std::uint32_t& currentId, s
 
 [[nodiscard]] std::vector<PackageList> findPackageLists(ByteView view) {
     std::vector<PackageList> lists;
-    for (std::size_t offset = 0; offset + 24 <= view.bytes.size(); ++offset) {
+    for (std::size_t offset = 0; offset + 24 <= view.bytes.size();) {
         PackageList packageList;
         if (parsePackageListAt(view, offset, packageList)) {
             lists.push_back(std::move(packageList));
+            const auto listLength = view.u32(offset + 16);
+            offset += std::max<std::size_t>(listLength, 1);
+            continue;
         }
+        ++offset;
     }
     return lists;
 }

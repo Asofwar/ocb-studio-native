@@ -41,6 +41,10 @@ CompensationResult ChecksumCompensator::compensate(std::vector<std::uint8_t>& da
         throw OcbException("Файл слишком мал для известной области компенсации контрольной суммы.");
     }
 
+    if (const auto current = compute(data); current == target) {
+        return {target, current, "checksums already preserved"};
+    }
+
     std::fill(
         data.begin() + static_cast<std::ptrdiff_t>(kCompensationOffset),
         data.begin() + static_cast<std::ptrdiff_t>(kCompensationOffset + kCompensationSize),

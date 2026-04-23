@@ -830,11 +830,15 @@ void collectSetupModules(const FirmwareNode& node, const std::string& path, std:
     const auto currentPath = path.empty() ? node.name : path + "/" + node.name;
     const auto pathHasSetup = containsCaseInsensitive(currentPath, "setup");
     const auto isPe = containsCaseInsensitive(node.type, "pe32") || containsCaseInsensitive(node.type, "te");
+    const auto bodyHasIfr = !node.body.empty() && containsIfrFormSetPackage(node.body);
 
-    if (isPe && !node.body.empty() && (pathHasSetup || containsIfrFormSetPackage(node.body))) {
+    if (isPe && bodyHasIfr && pathHasSetup) {
         modules.push_back({currentPath, node.body});
     }
-    if (!node.body.empty() && containsIfrFormSetPackage(node.body)) {
+    if (isPe && bodyHasIfr) {
+        modules.push_back({currentPath, node.body});
+    }
+    if (node.children.empty() && bodyHasIfr) {
         modules.push_back({currentPath, node.body});
     }
     if (containsCaseInsensitive(node.type, "ffs")
@@ -887,10 +891,21 @@ std::optional<SetupModule> NativeUefiExtractor::findBestSetupModule(const Firmwa
         if (lhsSetup != rhsSetup) {
             return lhsSetup > rhsSetup;
         }
+        const auto lhsExecutable = containsCaseInsensitive(lhs.pathHint, "pe32") || containsCaseInsensitive(lhs.pathHint, "te");
+        const auto rhsExecutable = containsCaseInsensitive(rhs.pathHint, "pe32") || containsCaseInsensitive(rhs.pathHint, "te");
+        if (lhsExecutable != rhsExecutable) {
+            return lhsExecutable > rhsExecutable;
+        }
         const auto lhsIfr = containsIfrFormSetPackage(lhs.pe32Body);
         const auto rhsIfr = containsIfrFormSetPackage(rhs.pe32Body);
         if (lhsIfr != rhsIfr) {
             return lhsIfr > rhsIfr;
+        }
+        if (lhsExecutable && rhsExecutable) {
+            return lhs.pe32Body.size() > rhs.pe32Body.size();
+        }
+        if (lhs.pe32Body.size() != rhs.pe32Body.size()) {
+            return lhs.pe32Body.size() < rhs.pe32Body.size();
         }
         return lhs.pe32Body.size() > rhs.pe32Body.size();
     });

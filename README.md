@@ -101,7 +101,7 @@ cmake --build build-core --config Release --parallel
 .\build\app\Release\ocb_studio.exe --input MsOcFile.ocb --output MsOcFile.patched.ocb --write "CPU Lite Load" 30
 ```
 
-Добавьте `--no-compensate`, если нужен сырой вывод без компенсации контрольной суммы.
+По умолчанию CLI сохраняет OCB без компенсации контрольной суммы. Используйте компенсацию только если она действительно нужна для вашего сценария.
 
 ## Формат файла пресета
 

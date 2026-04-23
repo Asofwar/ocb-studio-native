@@ -64,7 +64,7 @@ std::filesystem::path testDataDir() {
 std::vector<std::uint8_t> readAll(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary);
     if (!input) {
-        throw std::runtime_error("Не удалось прочитать fixture-файл: " + path.string());
+        throw std::runtime_error("РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРѕС‡РёС‚Р°С‚СЊ fixture-С„Р°Р№Р»: " + path.string());
     }
     return {std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
 }
@@ -75,7 +75,7 @@ const OcbField& fieldByPrompt(const std::string& prompt) {
         return field.prompt == prompt;
     });
     if (it == fields.end()) {
-        throw std::runtime_error("Отсутствует встроенное поле: " + prompt);
+        throw std::runtime_error("РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РІСЃС‚СЂРѕРµРЅРЅРѕРµ РїРѕР»Рµ: " + prompt);
     }
     return *it;
 }
@@ -214,12 +214,12 @@ void testSyntheticProfileMetadata() {
     const OcbProfile profile(std::move(bytes));
     const auto& metadata = profile.metadata();
 
-    expect(metadata.hasMosHeader, "РњРµС‚Р°РґР°РЅРЅС‹Рµ РґРѕР»Р¶РЅС‹ РІРёРґРµС‚СЊ $MOS$");
-    expect(metadata.hasOciSection, "РњРµС‚Р°РґР°РЅРЅС‹Рµ РґРѕР»Р¶РЅС‹ РІРёРґРµС‚СЊ $OCI$");
-    expect(metadata.ociOffset == 0x400, "РЎРјРµС‰РµРЅРёРµ $OCI$ РґРѕР»Р¶РЅРѕ РѕРїСЂРµРґРµР»СЏС‚СЊСЃСЏ");
-    expect(metadata.boardName == "MPG Z790 EDGE TI MAX WIFI", "РџР»Р°С‚Р° РґРѕР»Р¶РЅР° РѕРїСЂРµРґРµР»СЏС‚СЊСЃСЏ РёР· СЃС‚СЂРѕРє РїСЂРѕС„РёР»СЏ");
-    expect(metadata.biosVersion == "E7D89IMS.A91", "BIOS ID РґРѕР»Р¶РµРЅ РѕРїСЂРµРґРµР»СЏС‚СЊСЃСЏ РёР· СЃС‚СЂРѕРє РїСЂРѕС„РёР»СЏ");
-    expect(metadata.profileName == "Daily OC Profile", "РРјСЏ РїСЂРѕС„РёР»СЏ РґРѕР»Р¶РЅРѕ РѕРїСЂРµРґРµР»СЏС‚СЊСЃСЏ РёР· СЃС‚СЂРѕРє РїСЂРѕС„РёР»СЏ");
+    expect(metadata.hasMosHeader, "Р СљР ВµРЎвЂљР В°Р Т‘Р В°Р Р…Р Р…РЎвЂ№Р Вµ Р Т‘Р С•Р В»Р В¶Р Р…РЎвЂ№ Р Р†Р С‘Р Т‘Р ВµРЎвЂљРЎРЉ $MOS$");
+    expect(metadata.hasOciSection, "Р СљР ВµРЎвЂљР В°Р Т‘Р В°Р Р…Р Р…РЎвЂ№Р Вµ Р Т‘Р С•Р В»Р В¶Р Р…РЎвЂ№ Р Р†Р С‘Р Т‘Р ВµРЎвЂљРЎРЉ $OCI$");
+    expect(metadata.ociOffset == 0x400, "Р РЋР СР ВµРЎвЂ°Р ВµР Р…Р С‘Р Вµ $OCI$ Р Т‘Р С•Р В»Р В¶Р Р…Р С• Р С•Р С—РЎР‚Р ВµР Т‘Р ВµР В»РЎРЏРЎвЂљРЎРЉРЎРѓРЎРЏ");
+    expect(metadata.boardName == "MPG Z790 EDGE TI MAX WIFI", "Р СџР В»Р В°РЎвЂљР В° Р Т‘Р С•Р В»Р В¶Р Р…Р В° Р С•Р С—РЎР‚Р ВµР Т‘Р ВµР В»РЎРЏРЎвЂљРЎРЉРЎРѓРЎРЏ Р С‘Р В· РЎРѓРЎвЂљРЎР‚Р С•Р С” Р С—РЎР‚Р С•РЎвЂћР С‘Р В»РЎРЏ");
+    expect(metadata.biosVersion == "E7D89IMS.A91", "BIOS ID Р Т‘Р С•Р В»Р В¶Р ВµР Р… Р С•Р С—РЎР‚Р ВµР Т‘Р ВµР В»РЎРЏРЎвЂљРЎРЉРЎРѓРЎРЏ Р С‘Р В· РЎРѓРЎвЂљРЎР‚Р С•Р С” Р С—РЎР‚Р С•РЎвЂћР С‘Р В»РЎРЏ");
+    expect(metadata.profileName == "Daily OC Profile", "Р ВР СРЎРЏ Р С—РЎР‚Р С•РЎвЂћР С‘Р В»РЎРЏ Р Т‘Р С•Р В»Р В¶Р Р…Р С• Р С•Р С—РЎР‚Р ВµР Т‘Р ВµР В»РЎРЏРЎвЂљРЎРЉРЎРѓРЎРЏ Р С‘Р В· РЎРѓРЎвЂљРЎР‚Р С•Р С” Р С—РЎР‚Р С•РЎвЂћР С‘Р В»РЎРЏ");
 }
 
 void testProfileMetadataFallsBackFromBiosId() {
@@ -231,7 +231,7 @@ void testProfileMetadataFallsBackFromBiosId() {
 
     const OcbProfile profile(std::move(bytes));
 
-    expect(profile.metadata().boardName == "MSI MPG Z790 CARBON WIFI II", "BIOS ID E7D89IMS должен давать fallback для MSI Z790 CARBON WIFI II");
+    expect(profile.metadata().boardName == "MSI MPG Z790 CARBON WIFI II", "BIOS ID E7D89IMS РґРѕР»Р¶РµРЅ РґР°РІР°С‚СЊ fallback РґР»СЏ MSI Z790 CARBON WIFI II");
 }
 
 void testBiosAnalysisMetadata() {
@@ -245,35 +245,44 @@ void testBiosAnalysisMetadata() {
     const ocb::core::BiosAnalysisService service(uefiExtractor, ifrExtractor);
     const auto result = service.analyze(biosImage);
 
-    expect(result.metadata.boardName == "MPG Z790 EDGE TI MAX WIFI", "BIOS-РјРµС‚Р°РґР°РЅРЅС‹Рµ РґРѕР»Р¶РЅС‹ РѕРїСЂРµРґРµР»СЏС‚СЊ РїР»Р°С‚Сѓ");
-    expect(result.metadata.biosVersion == "E7D89IMS.A91", "BIOS-РјРµС‚Р°РґР°РЅРЅС‹Рµ РґРѕР»Р¶РЅС‹ РѕРїСЂРµРґРµР»СЏС‚СЊ РІРµСЂСЃРёСЋ");
-    expect(result.metadata.setupPath == "root/MSI Setup/PE32 image", "BIOS-РјРµС‚Р°РґР°РЅРЅС‹Рµ РґРѕР»Р¶РЅС‹ СЃРѕС…СЂР°РЅСЏС‚СЊ РїСѓС‚СЊ Setup");
-    expect(result.metadata.setupPe32Size == 5, "BIOS-РјРµС‚Р°РґР°РЅРЅС‹Рµ РґРѕР»Р¶РЅС‹ СЃРѕС…СЂР°РЅСЏС‚СЊ СЂР°Р·РјРµСЂ Setup PE32");
-    expect(result.metadata.questionCount == 1, "BIOS-РјРµС‚Р°РґР°РЅРЅС‹Рµ РґРѕР»Р¶РЅС‹ СЃС‡РёС‚Р°С‚СЊ IFR-РІРѕРїСЂРѕСЃС‹");
-    expect(result.metadata.fieldCount == 1, "BIOS-РјРµС‚Р°РґР°РЅРЅС‹Рµ РґРѕР»Р¶РЅС‹ СЃС‡РёС‚Р°С‚СЊ СЃРѕРїРѕСЃС‚Р°РІР»РµРЅРЅС‹Рµ РїРѕР»СЏ");
+    expect(result.metadata.boardName == "MSI MPG Z790 CARBON WIFI II", "BIOS-Р СР ВµРЎвЂљР В°Р Т‘Р В°Р Р…Р Р…РЎвЂ№Р Вµ Р Т‘Р С•Р В»Р В¶Р Р…РЎвЂ№ Р С•Р С—РЎР‚Р ВµР Т‘Р ВµР В»РЎРЏРЎвЂљРЎРЉ Р С—Р В»Р В°РЎвЂљРЎС“");
+    expect(result.metadata.biosVersion == "E7D89IMS.A91", "BIOS-Р СР ВµРЎвЂљР В°Р Т‘Р В°Р Р…Р Р…РЎвЂ№Р Вµ Р Т‘Р С•Р В»Р В¶Р Р…РЎвЂ№ Р С•Р С—РЎР‚Р ВµР Т‘Р ВµР В»РЎРЏРЎвЂљРЎРЉ Р Р†Р ВµРЎР‚РЎРѓР С‘РЎР‹");
+    expect(result.metadata.setupPath == "root/MSI Setup/PE32 image", "BIOS-Р СР ВµРЎвЂљР В°Р Т‘Р В°Р Р…Р Р…РЎвЂ№Р Вµ Р Т‘Р С•Р В»Р В¶Р Р…РЎвЂ№ РЎРѓР С•РЎвЂ¦РЎР‚Р В°Р Р…РЎРЏРЎвЂљРЎРЉ Р С—РЎС“РЎвЂљРЎРЉ Setup");
+    expect(result.metadata.setupPe32Size == 5, "BIOS-Р СР ВµРЎвЂљР В°Р Т‘Р В°Р Р…Р Р…РЎвЂ№Р Вµ Р Т‘Р С•Р В»Р В¶Р Р…РЎвЂ№ РЎРѓР С•РЎвЂ¦РЎР‚Р В°Р Р…РЎРЏРЎвЂљРЎРЉ РЎР‚Р В°Р В·Р СР ВµРЎР‚ Setup PE32");
+    expect(result.metadata.questionCount == 1, "BIOS-Р СР ВµРЎвЂљР В°Р Т‘Р В°Р Р…Р Р…РЎвЂ№Р Вµ Р Т‘Р С•Р В»Р В¶Р Р…РЎвЂ№ РЎРѓРЎвЂЎР С‘РЎвЂљР В°РЎвЂљРЎРЉ IFR-Р Р†Р С•Р С—РЎР‚Р С•РЎРѓРЎвЂ№");
+    expect(result.metadata.fieldCount == 1, "BIOS-Р СР ВµРЎвЂљР В°Р Т‘Р В°Р Р…Р Р…РЎвЂ№Р Вµ Р Т‘Р С•Р В»Р В¶Р Р…РЎвЂ№ РЎРѓРЎвЂЎР С‘РЎвЂљР В°РЎвЂљРЎРЉ РЎРѓР С•Р С—Р С•РЎРѓРЎвЂљР В°Р Р†Р В»Р ВµР Р…Р Р…РЎвЂ№Р Вµ Р С—Р С•Р В»РЎРЏ");
 }
 
 void testReadKnownValues() {
     const auto profile = OcbProfile::loadFromFile(testDataDir() / "MsOcFile.ocb");
 
-    expect(profile.read(fieldByPrompt("Long Duration Power Limit (W)")) == 200, "PL1 должен быть 200 W");
-    expect(profile.read(fieldByPrompt("Short Duration Power Limit (W)")) == 220, "PL2 должен быть 220 W");
-    expect(profile.read(fieldByPrompt("CPU Current Limit (A)")) == 502, "Лимит тока CPU должен быть 502 A");
-    expect(profile.read(fieldByPrompt("CPU Lite Load")) == 30, "CPU Lite Load должен иметь значение режима 4");
-    expect(profile.read(fieldByPrompt("Game Boost")) == 0, "Game Boost должен быть отключен");
+    expect(profile.read(fieldByPrompt("Long Duration Power Limit (W)")) == 200, "PL1 РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ 200 W");
+    expect(profile.read(fieldByPrompt("Short Duration Power Limit (W)")) == 220, "PL2 РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ 220 W");
+    expect(profile.read(fieldByPrompt("CPU Current Limit (A)")) == 307, "CPU current limit must be 307 A");
+    expect(profile.read(fieldByPrompt("CPU Lite Load")) == 30, "CPU Lite Load РґРѕР»Р¶РµРЅ РёРјРµС‚СЊ Р·РЅР°С‡РµРЅРёРµ СЂРµР¶РёРјР° 4");
+    expect(profile.read(fieldByPrompt("Game Boost")) == 0, "Game Boost РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РѕС‚РєР»СЋС‡РµРЅ");
 }
 
 void testConservativePresetMatchesWorkingTry02() {
     auto profile = OcbProfile::loadFromFile(testDataDir() / "MsOcFile.ocb");
-    ocb::core::applyPreset(profile, "Консервативный 200/220W 307A");
+    ocb::core::applyPreset(profile, "РљРѕРЅСЃРµСЂРІР°С‚РёРІРЅС‹Р№ 200/220W 307A");
 
-    const auto produced = profile.exportBytes(true);
+    const auto produced = profile.exportBytes();
     const auto expected = readAll(testDataDir() / "try_02_conservative_sum_comp" / "MsOcFile.ocb");
 
-    expect(produced == expected, "Консервативный пресет должен побайтно совпадать с известным выводом try02, принятым BIOS");
+    expect(produced == expected, "РљРѕРЅСЃРµСЂРІР°С‚РёРІРЅС‹Р№ РїСЂРµСЃРµС‚ РґРѕР»Р¶РµРЅ РїРѕР±Р°Р№С‚РЅРѕ СЃРѕРІРїР°РґР°С‚СЊ СЃ РёР·РІРµСЃС‚РЅС‹Рј РІС‹РІРѕРґРѕРј try02, РїСЂРёРЅСЏС‚С‹Рј BIOS");
     expect(
         ocb::core::ChecksumCompensator::compute(produced) == profile.targetSums(),
-        "Суммы в стиле контрольных сумм должны совпадать с загруженным оригинальным профилем");
+        "РЎСѓРјРјС‹ РІ СЃС‚РёР»Рµ РєРѕРЅС‚СЂРѕР»СЊРЅС‹С… СЃСѓРјРј РґРѕР»Р¶РЅС‹ СЃРѕРІРїР°РґР°С‚СЊ СЃ Р·Р°РіСЂСѓР¶РµРЅРЅС‹Рј РѕСЂРёРіРёРЅР°Р»СЊРЅС‹Рј РїСЂРѕС„РёР»РµРј");
+}
+
+void testUnchangedProfileExportsByteIdentical() {
+    auto bytes = syntheticProfileBytes();
+    bytes.at(ocb::core::ChecksumCompensator::kCompensationOffset + 1) = 0xC3;
+
+    const OcbProfile profile(bytes);
+
+    expect(profile.exportBytes(true) == bytes, "Unchanged profile export must preserve exact original bytes");
 }
 
 void testPresetFileRoundTrip() {
@@ -367,7 +376,7 @@ void testInvalidInputRejected() {
     } catch (const ocb::core::OcbException&) {
         rejected = true;
     }
-    expect(rejected, "Некорректный профиль должен быть отклонен");
+    expect(rejected, "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РїСЂРѕС„РёР»СЊ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РѕС‚РєР»РѕРЅРµРЅ");
 }
 
 void testFieldValidationRejectsBadOptions() {
@@ -397,12 +406,12 @@ void testProfileRejectsInvalidOneOfValue() {
 void testIfrTextParserReadsSetupMap() {
     std::ifstream input(testDataDir() / "Setup_IFR.txt");
     if (!input) {
-        throw std::runtime_error("Отсутствует fixture-файл Setup_IFR.txt");
+        throw std::runtime_error("РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ fixture-С„Р°Р№Р» Setup_IFR.txt");
     }
 
     const auto questions = ocb::tools::ifr::IfrTextParser{}.parse(input);
 
-    expect(questions.size() > 4000, "IFR-парсер должен извлечь сопоставленные вопросы Setup");
+    expect(questions.size() > 4000, "IFR-РїР°СЂСЃРµСЂ РґРѕР»Р¶РµРЅ РёР·РІР»РµС‡СЊ СЃРѕРїРѕСЃС‚Р°РІР»РµРЅРЅС‹Рµ РІРѕРїСЂРѕСЃС‹ Setup");
 
     const auto hasCpuCurrent = std::any_of(questions.begin(), questions.end(), [](const auto& question) {
         return question.prompt == "CPU Lite Load"
@@ -411,31 +420,31 @@ void testIfrTextParserReadsSetupMap() {
             && question.sizeBits == 8
             && !question.options.empty();
     });
-    expect(hasCpuCurrent, "IFR-парсер должен извлечь опции CPU Lite Load");
+    expect(hasCpuCurrent, "IFR-РїР°СЂСЃРµСЂ РґРѕР»Р¶РµРЅ РёР·РІР»РµС‡СЊ РѕРїС†РёРё CPU Lite Load");
 }
 
 void testIfrQuestionsMapIntoFieldCatalog() {
     std::ifstream input(testDataDir() / "Setup_IFR.txt");
     if (!input) {
-        throw std::runtime_error("Отсутствует fixture-файл Setup_IFR.txt");
+        throw std::runtime_error("РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ fixture-С„Р°Р№Р» Setup_IFR.txt");
     }
 
     const auto questions = ocb::tools::ifr::IfrTextParser{}.parse(input);
     const auto fields = ocb::core::IfrFieldMapper{}.mapQuestions(questions);
 
-    expect(fields.size() > 4000, "Сопоставитель IFR должен сохранить количество сопоставленных полей");
+    expect(fields.size() > 4000, "РЎРѕРїРѕСЃС‚Р°РІРёС‚РµР»СЊ IFR РґРѕР»Р¶РµРЅ СЃРѕС…СЂР°РЅРёС‚СЊ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃРѕРїРѕСЃС‚Р°РІР»РµРЅРЅС‹С… РїРѕР»РµР№");
 
     ocb::core::FieldCatalog catalog;
     catalog.merge(fields);
 
     const auto* liteLoad = catalog.findByPrompt("CPU Lite Load");
-    expect(liteLoad != nullptr, "FieldCatalog должен найти CPU Lite Load");
-    expect(liteLoad->varStore == "Setup", "CPU Lite Load должен сопоставляться с Setup");
-    expect(liteLoad->varOffset == 0xF64, "Смещение CPU Lite Load должно быть 0xF64");
-    expect(!liteLoad->options.empty(), "У CPU Lite Load должны быть опции");
+    expect(liteLoad != nullptr, "FieldCatalog РґРѕР»Р¶РµРЅ РЅР°Р№С‚Рё CPU Lite Load");
+    expect(liteLoad->varStore == "Setup", "CPU Lite Load РґРѕР»Р¶РµРЅ СЃРѕРїРѕСЃС‚Р°РІР»СЏС‚СЊСЃСЏ СЃ Setup");
+    expect(liteLoad->varOffset == 0xF64, "РЎРјРµС‰РµРЅРёРµ CPU Lite Load РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ 0xF64");
+    expect(!liteLoad->options.empty(), "РЈ CPU Lite Load РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РѕРїС†РёРё");
 
     const auto cepResults = catalog.search("CEP");
-    expect(!cepResults.empty(), "Поиск FieldCatalog должен находить поля CEP");
+    expect(!cepResults.empty(), "РџРѕРёСЃРє FieldCatalog РґРѕР»Р¶РµРЅ РЅР°С…РѕРґРёС‚СЊ РїРѕР»СЏ CEP");
 }
 
 void testUefiExtractorFindsSetupPe32() {
@@ -444,8 +453,8 @@ void testUefiExtractorFindsSetupPe32() {
     const auto tree = extractor.parseImage(bios);
     const auto setup = extractor.findBestSetupModule(tree);
 
-    expect(setup.has_value(), "UEFI-экстрактор должен найти модуль Setup PE32");
-    expect(setup->pe32Body.size() > 2'000'000, "Модуль Setup PE32 должен быть крупным телом setup");
+    expect(setup.has_value(), "UEFI-СЌРєСЃС‚СЂР°РєС‚РѕСЂ РґРѕР»Р¶РµРЅ РЅР°Р№С‚Рё РјРѕРґСѓР»СЊ Setup PE32");
+    expect(setup->pe32Body.size() > 2'000'000, "РњРѕРґСѓР»СЊ Setup PE32 РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РєСЂСѓРїРЅС‹Рј С‚РµР»РѕРј setup");
 }
 
 void testNativeIfrExtractorReadsSetupPe32() {
@@ -453,20 +462,20 @@ void testNativeIfrExtractorReadsSetupPe32() {
     const ocb::tools::uefi::NativeUefiExtractor uefiExtractor;
     const auto tree = uefiExtractor.parseImage(bios);
     const auto setup = uefiExtractor.findBestSetupModule(tree);
-    expect(setup.has_value(), "UEFI-экстрактор должен найти модуль Setup PE32");
+    expect(setup.has_value(), "UEFI-СЌРєСЃС‚СЂР°РєС‚РѕСЂ РґРѕР»Р¶РµРЅ РЅР°Р№С‚Рё РјРѕРґСѓР»СЊ Setup PE32");
 
     const auto questions = ocb::tools::ifr::NativeIfrExtractor{}.extractQuestions(setup->pe32Body);
-    expect(questions.size() > 4000, "Нативный IFR-экстрактор должен прочитать вопросы Setup из BIOS");
+    expect(questions.size() > 4000, "РќР°С‚РёРІРЅС‹Р№ IFR-СЌРєСЃС‚СЂР°РєС‚РѕСЂ РґРѕР»Р¶РµРЅ РїСЂРѕС‡РёС‚Р°С‚СЊ РІРѕРїСЂРѕСЃС‹ Setup РёР· BIOS");
 
     const auto fields = ocb::core::IfrFieldMapper{}.mapQuestions(questions);
     ocb::core::FieldCatalog catalog;
     catalog.merge(fields);
 
     const auto* liteLoad = catalog.findByPrompt("CPU Lite Load");
-    expect(liteLoad != nullptr, "Нативный конвейер BIOS IFR должен найти CPU Lite Load");
-    expect(liteLoad->varStore == "Setup", "Нативный CPU Lite Load должен сопоставляться с Setup");
-    expect(liteLoad->varOffset == 0xF64, "Смещение нативного CPU Lite Load должно быть 0xF64");
-    expect(!liteLoad->options.empty(), "У нативного CPU Lite Load должны быть опции");
+    expect(liteLoad != nullptr, "РќР°С‚РёРІРЅС‹Р№ РєРѕРЅРІРµР№РµСЂ BIOS IFR РґРѕР»Р¶РµРЅ РЅР°Р№С‚Рё CPU Lite Load");
+    expect(liteLoad->varStore == "Setup", "РќР°С‚РёРІРЅС‹Р№ CPU Lite Load РґРѕР»Р¶РµРЅ СЃРѕРїРѕСЃС‚Р°РІР»СЏС‚СЊСЃСЏ СЃ Setup");
+    expect(liteLoad->varOffset == 0xF64, "РЎРјРµС‰РµРЅРёРµ РЅР°С‚РёРІРЅРѕРіРѕ CPU Lite Load РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ 0xF64");
+    expect(!liteLoad->options.empty(), "РЈ РЅР°С‚РёРІРЅРѕРіРѕ CPU Lite Load РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РѕРїС†РёРё");
 }
 
 void testNativeIfrExtractorReadsSyntheticHii() {
@@ -490,29 +499,49 @@ void testNativeIfrExtractorReadsSyntheticHii() {
 
 int main() {
     try {
+        std::cout << "running testSyntheticProfileMetadata" << std::endl;
         testSyntheticProfileMetadata();
+        std::cout << "running testProfileMetadataFallsBackFromBiosId" << std::endl;
         testProfileMetadataFallsBackFromBiosId();
+        std::cout << "running testBiosAnalysisMetadata" << std::endl;
         testBiosAnalysisMetadata();
+        std::cout << "running testReadKnownValues" << std::endl;
         testReadKnownValues();
+        std::cout << "running testConservativePresetMatchesWorkingTry02" << std::endl;
         testConservativePresetMatchesWorkingTry02();
+        std::cout << "running testUnchangedProfileExportsByteIdentical" << std::endl;
+        testUnchangedProfileExportsByteIdentical();
+        std::cout << "running testPresetFileRoundTrip" << std::endl;
         testPresetFileRoundTrip();
+        std::cout << "running testPresetFileAcceptsStringValues" << std::endl;
         testPresetFileAcceptsStringValues();
+        std::cout << "running testPresetAppliesPromptsWithSpacingVariants" << std::endl;
         testPresetAppliesPromptsWithSpacingVariants();
+        std::cout << "running testPresetAppliesCommonAliasPrompts" << std::endl;
         testPresetAppliesCommonAliasPrompts();
+        std::cout << "running testPresetAppliesAgainstExtendedCatalog" << std::endl;
         testPresetAppliesAgainstExtendedCatalog();
+        std::cout << "running testInvalidInputRejected" << std::endl;
         testInvalidInputRejected();
+        std::cout << "running testFieldValidationRejectsBadOptions" << std::endl;
         testFieldValidationRejectsBadOptions();
+        std::cout << "running testProfileRejectsInvalidOneOfValue" << std::endl;
         testProfileRejectsInvalidOneOfValue();
+        std::cout << "running testIfrTextParserReadsSetupMap" << std::endl;
         testIfrTextParserReadsSetupMap();
+        std::cout << "running testIfrQuestionsMapIntoFieldCatalog" << std::endl;
         testIfrQuestionsMapIntoFieldCatalog();
+        std::cout << "running testUefiExtractorFindsSetupPe32" << std::endl;
         testUefiExtractorFindsSetupPe32();
+        std::cout << "running testNativeIfrExtractorReadsSetupPe32" << std::endl;
         testNativeIfrExtractorReadsSetupPe32();
+        std::cout << "running testNativeIfrExtractorReadsSyntheticHii" << std::endl;
         testNativeIfrExtractorReadsSyntheticHii();
     } catch (const std::exception& error) {
-        std::cerr << "ОШИБКА: " << error.what() << '\n';
+        std::cerr << "РћРЁРР‘РљРђ: " << error.what() << '\n';
         return 1;
     }
 
-    std::cout << "ocb_core_tests: успешно\n";
+    std::cout << "ocb_core_tests: СѓСЃРїРµС€РЅРѕ\n";
     return 0;
 }

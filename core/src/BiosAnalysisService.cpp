@@ -11,7 +11,10 @@ BiosMetadata detectBiosMetadata(
     const tools::uefi::SetupModule& setup,
     std::size_t questionCount,
     std::size_t fieldCount) {
-    const auto strings = detail::extractTextStrings(biosImage);
+    constexpr std::size_t kMetadataScanLimit = 256U * 1024U;
+    const auto metadataWindow = biosImage.first(std::min(biosImage.size(), kMetadataScanLimit));
+    const auto strings = detail::extractTextStrings(metadataWindow);
+    const auto biosVersion = detail::firstBiosVersion(strings);
 
     BiosMetadata metadata;
     metadata.imageSize = static_cast<std::uint64_t>(biosImage.size());
@@ -19,8 +22,8 @@ BiosMetadata detectBiosMetadata(
     metadata.questionCount = static_cast<std::uint64_t>(questionCount);
     metadata.fieldCount = static_cast<std::uint64_t>(fieldCount);
     metadata.setupPath = setup.pathHint;
-    metadata.boardName = detail::chooseBoardName(strings);
-    metadata.biosVersion = detail::firstBiosVersion(strings);
+    metadata.biosVersion = biosVersion;
+    metadata.boardName = detail::boardNameFromBiosVersion(biosVersion);
     return metadata;
 }
 
