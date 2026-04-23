@@ -1,32 +1,32 @@
-# Changelog
+# Журнал изменений
 
-Notable changes to OCB Studio Native are documented here.
+Здесь документируются заметные изменения OCB Studio Native.
 
-The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project will use semantic versioning after public releases begin.
+Формат следует духу [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). После начала публичных релизов проект будет использовать семантическое версионирование.
 
-## Unreleased
+## Не выпущено
 
-### Changed
+### Изменено
 
-- Replaced the former desktop GUI with a Dear ImGui + GLFW/OpenGL desktop application.
-- Added a command line fallback for scripting.
-- Removed CMake and CI requirements for a Qt SDK or Qt runtime packaging.
-- Added static Dear ImGui/GLFW dependency builds through CMake FetchContent.
-- Kept preset import/export as core C++ functionality through `.ocbpreset` JSON files.
+- Прежний настольный GUI заменен приложением Dear ImGui + GLFW/OpenGL.
+- Добавлен CLI-режим для сценариев и автоматизации.
+- Убраны требования CMake и CI к Qt SDK и упаковке Qt runtime.
+- Добавлена статическая сборка зависимостей Dear ImGui/GLFW через CMake FetchContent.
+- Импорт и экспорт пресетов сохранены как функциональность ядра C++ через JSON-файлы `.ocbpreset`.
 
 ## [0.1.0] - 2026-04-22
 
-### Added
+### Добавлено
 
-- Native C++ core for loading, validating, editing, resetting, and saving MSI OCB profile files.
-- Checksum compensation for saved OCB profiles.
-- Built-in field catalog and conservative presets.
-- Integrated BIOS parsing wrapper based on UEFITool source fragments.
-- Native IFR extraction from Setup PE32 modules.
-- IFR-to-OCB field mapping.
-- Public repository documentation, contribution guide, security policy, issue templates, and CI.
+- Нативное ядро C++ для загрузки, проверки, редактирования, сброса и сохранения MSI OCB-профилей.
+- Компенсация контрольных сумм для сохраняемых OCB-профилей.
+- Встроенный каталог полей и консервативные пресеты.
+- Интегрированная обертка разбора BIOS на основе фрагментов исходников UEFITool.
+- Нативное извлечение IFR из модулей Setup PE32.
+- Сопоставление IFR-полей с OCB-полями.
+- Публичная документация репозитория, руководство по участию, политика безопасности, шаблоны issues и CI.
 
-### Notes
+### Примечания
 
-- Public CI builds source targets without proprietary BIOS or OCB fixture files.
-- Firmware editing remains experimental and should be used only with verified backups.
+- Публичный CI собирает исходные цели без проприетарных fixture-файлов BIOS или OCB.
+- Редактирование firmware остается экспериментальным и должно использоваться только с проверенными резервными копиями.

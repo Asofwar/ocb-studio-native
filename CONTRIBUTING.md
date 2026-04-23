@@ -1,16 +1,16 @@
-# Contributing
+# Участие в разработке
 
-Thanks for helping improve OCB Studio Native.
+Спасибо, что помогаете улучшать OCB Studio Native.
 
-## Principles
+## Принципы
 
-- Keep the project native C++ with Dear ImGui/GLFW built as static libraries.
-- Prefer small, reviewable changes over broad rewrites.
-- Do not add external runtime tools when a local C++ wrapper or integrated source path is practical.
-- Keep firmware handling conservative and explicit.
-- Do not commit user BIOS images, OCB profiles, serial numbers, board dumps, or other machine-specific artifacts.
+- Сохраняйте проект нативным C++ с Dear ImGui/GLFW, собираемыми как статические библиотеки.
+- Предпочитайте небольшие, удобные для ревью изменения широким переписываниям.
+- Не добавляйте внешние runtime-инструменты, если практичен локальный C++-wrapper или интегрированный путь через исходники.
+- Держите работу с firmware консервативной и явной.
+- Не коммитьте пользовательские BIOS-образы, OCB-профили, серийные номера, дампы плат и другие машинно-специфичные артефакты.
 
-## Local Build
+## Локальная сборка
 
 ```powershell
 cmake -S . -B build -DOCB_BUILD_APP=ON -DOCB_BUILD_TESTS=ON
@@ -18,27 +18,27 @@ cmake --build build --config Release --parallel
 ctest --test-dir build -C Release --output-on-failure
 ```
 
-On Linux, install X11/OpenGL development packages for GLFW before configuring.
+На Linux перед конфигурацией установите пакеты разработки X11/OpenGL для GLFW.
 
-For tools/core only:
+Только инструменты и ядро:
 
 ```powershell
 cmake -S . -B build-core -DOCB_BUILD_APP=OFF -DOCB_BUILD_TESTS=OFF
 cmake --build build-core --config Release --parallel
 ```
 
-## Pull Requests
+## Pull request
 
-Before opening a pull request:
+Перед открытием pull request:
 
-- Build the affected targets.
-- Run tests when the required local fixture files are available.
-- Update documentation for user-visible behavior.
-- Explain firmware safety implications when changes affect parsing, mapping, checksums, or saved output.
+- Соберите затронутые цели.
+- Запустите тесты, если доступны необходимые локальные fixture-файлы.
+- Обновите документацию для поведения, видимого пользователю.
+- Опишите последствия для безопасности firmware, если изменения затрагивают разбор, сопоставление, контрольные суммы или сохраняемый вывод.
 
-## Code Style
+## Стиль кода
 
-- Use C++20 for project code.
-- Keep CMake targets modular.
-- Put public headers under `include/ocb/...`.
-- Use clear C++ interfaces around vendored tools instead of exposing broad upstream internals.
+- Используйте C++20 для кода проекта.
+- Держите CMake-цели модульными.
+- Размещайте публичные заголовки в `include/ocb/...`.
+- Используйте понятные C++-интерфейсы вокруг vendored-инструментов вместо раскрытия широких внутренних API upstream-проектов.

@@ -1,46 +1,46 @@
 # OCB Studio Native
 
 [![CI](https://github.com/Asofwar/ocb-studio-native/actions/workflows/ci.yml/badge.svg)](https://github.com/Asofwar/ocb-studio-native/actions/workflows/ci.yml)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Лицензия: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-OCB Studio Native is a C++20 Dear ImGui desktop tool, command line fallback, and library for inspecting and editing MSI overclocking profile files (`MsOcFile.ocb`). It can apply built-in presets, import/export preset files, write individual field values, compensate checksums, and extend the field catalog from BIOS IFR data.
+OCB Studio Native - настольный инструмент на C++20 и Dear ImGui, CLI-режим и библиотека для просмотра и редактирования файлов профилей разгона MSI (`MsOcFile.ocb`). Приложение умеет применять встроенные пресеты, импортировать и экспортировать файлы пресетов, записывать отдельные значения полей, компенсировать контрольные суммы и расширять каталог полей на основе BIOS IFR.
 
-The project intentionally has no Qt, Electron, or webview dependency. The GUI is built with Dear ImGui, GLFW, and OpenGL; CMake fetches and builds Dear ImGui/GLFW as static libraries. Firmware parsing and IFR extraction are integrated through local C++ wrappers around vendored source code.
+Проект намеренно не зависит от Qt, Electron или webview. Графический интерфейс построен на Dear ImGui, GLFW и OpenGL; CMake загружает и собирает Dear ImGui/GLFW как статические библиотеки. Разбор firmware и извлечение IFR интегрированы через локальные C++-обертки вокруг включенных исходников сторонних инструментов.
 
-## Features
+## Возможности
 
-- Load, validate, edit, and save MSI OCB profile files.
-- Apply built-in presets or presets imported from `.ocbpreset` / JSON files.
-- Export built-in presets to portable preset files.
-- Write individual field values by field id or prompt.
-- Compensate OCB checksums for BIOS-accepted output.
-- Analyze BIOS images through the integrated UEFI/IFR pipeline.
-- Build with CMake using a C++20 compiler, the OS toolchain, and statically linked Dear ImGui/GLFW.
+- Загрузка, проверка, редактирование и сохранение MSI OCB-профилей.
+- Применение встроенных пресетов и пресетов из `.ocbpreset` / JSON-файлов.
+- Экспорт встроенных пресетов в переносимые файлы пресетов.
+- Запись отдельных значений по идентификатору поля или текстовой подсказке.
+- Компенсация контрольных сумм OCB для выходных файлов, принимаемых BIOS.
+- Анализ BIOS-образов через встроенный конвейер UEFI/IFR.
+- Сборка через CMake с компилятором C++20, системным toolchain и статически связанными Dear ImGui/GLFW.
 
-## Safety
+## Безопасность
 
-Firmware and overclocking changes can make a system unstable or unbootable. Treat generated profiles as experimental, keep verified backups, and apply only changes you understand. This project provides tooling; it does not guarantee that a specific board, firmware version, or profile will accept an edited file.
+Изменения firmware и параметров разгона могут сделать систему нестабильной или незагружаемой. Считайте сгенерированные профили экспериментальными, храните проверенные резервные копии и применяйте только те изменения, которые понимаете. Проект предоставляет инструменты, но не гарантирует, что конкретная плата, версия firmware или профиль примет отредактированный файл.
 
-## Layout
+## Структура
 
 ```text
-app/      Dear ImGui executable, command line fallback, and application controller
-core/     OCB profile model, fields, presets, preset files, checksums, BIOS analysis
-tools/    C++ wrappers around integrated firmware tools
-tests/    native test executable
+app/      исполняемый файл Dear ImGui, CLI-режим и контроллер приложения
+core/     модель OCB-профиля, поля, пресеты, файлы пресетов, контрольные суммы, анализ BIOS
+tools/    C++-обертки вокруг интегрированных firmware-инструментов
+tests/    нативный тестовый исполняемый файл
 ```
 
-## Requirements
+## Требования
 
-- CMake 3.24 or newer.
-- A C++20 compiler:
-  - MSVC 2022 on Windows.
-  - Current Clang or GCC on Linux.
-  - AppleClang on macOS.
+- CMake 3.24 или новее.
+- Компилятор с поддержкой C++20:
+  - MSVC 2022 на Windows.
+  - Актуальный Clang или GCC на Linux.
+  - AppleClang на macOS.
 
-No Qt SDK is required. The app uses Dear ImGui `v1.92.7` and GLFW `3.4` through CMake `FetchContent`.
+Qt SDK не требуется. Приложение использует Dear ImGui `v1.92.7` и GLFW `3.4` через CMake `FetchContent`.
 
-## Build
+## Сборка
 
 ```powershell
 cmake -S . -B build -DOCB_BUILD_APP=ON -DOCB_BUILD_TESTS=ON
@@ -48,64 +48,64 @@ cmake --build build --config Release --parallel
 ctest --test-dir build -C Release --output-on-failure
 ```
 
-For a library/tools-only build:
+Сборка только библиотеки и инструментов:
 
 ```powershell
 cmake -S . -B build-core -DOCB_BUILD_APP=OFF -DOCB_BUILD_TESTS=OFF
 cmake --build build-core --config Release --parallel
 ```
 
-MSVC builds use the static runtime (`/MT`) by default via `OCB_STATIC_MSVC_RUNTIME=ON`, so release binaries do not need Visual C++ runtime DLLs next to them.
+Сборки MSVC по умолчанию используют статический runtime (`/MT`) через `OCB_STATIC_MSVC_RUNTIME=ON`, поэтому релизным бинарным файлам не нужны DLL Visual C++ runtime рядом с ними.
 
-On Linux, install the usual X11/OpenGL development packages for GLFW before configuring, for example `xorg-dev`, `libglu1-mesa-dev`, and `pkg-config` on Ubuntu.
+На Linux перед конфигурацией установите обычные пакеты разработки X11/OpenGL для GLFW, например `xorg-dev`, `libglu1-mesa-dev` и `pkg-config` на Ubuntu.
 
-## GUI Usage
+## Использование GUI
 
-Run the executable without arguments:
+Запустите исполняемый файл без аргументов:
 
 ```powershell
 .\build\app\Release\ocb_studio.exe
 ```
 
-The Dear ImGui interface provides OCB/BIOS/IFR file loading, OCB saving, checksum compensation, preset import/export, preset application, field search, and direct field editing.
+Интерфейс Dear ImGui позволяет загружать файлы OCB/BIOS/IFR, сохранять OCB, компенсировать контрольные суммы, импортировать и экспортировать пресеты, применять пресеты, искать поля и напрямую редактировать значения.
 
-## CLI Usage
+## Использование CLI
 
-List built-in presets:
+Показать список встроенных пресетов:
 
 ```powershell
 .\build\app\Release\ocb_studio.exe --list-presets
 ```
 
-Export a built-in preset:
+Экспортировать встроенный пресет:
 
 ```powershell
 .\build\app\Release\ocb_studio.exe --export-preset "Консервативный 200/220W 307A" --output conservative.ocbpreset
 ```
 
-Apply a built-in preset:
+Применить встроенный пресет:
 
 ```powershell
 .\build\app\Release\ocb_studio.exe --input MsOcFile.ocb --output MsOcFile.patched.ocb --preset "Консервативный 200/220W 307A"
 ```
 
-Apply an imported preset file:
+Применить импортированный файл пресета:
 
 ```powershell
 .\build\app\Release\ocb_studio.exe --input MsOcFile.ocb --output MsOcFile.patched.ocb --preset-file conservative.ocbpreset
 ```
 
-Write one field:
+Записать одно поле:
 
 ```powershell
 .\build\app\Release\ocb_studio.exe --input MsOcFile.ocb --output MsOcFile.patched.ocb --write "CPU Lite Load" 30
 ```
 
-Add `--no-compensate` if you need raw output without checksum compensation.
+Добавьте `--no-compensate`, если нужен сырой вывод без компенсации контрольной суммы.
 
-## Preset File Format
+## Формат файла пресета
 
-Preset files are JSON objects:
+Файл пресета - это JSON-объект:
 
 ```json
 {
@@ -120,11 +120,11 @@ Preset files are JSON objects:
 }
 ```
 
-Values may be non-negative decimal integers or quoted decimal/hex strings.
+Значения могут быть неотрицательными десятичными целыми числами или строками с десятичными/шестнадцатеричными числами.
 
-## Tests
+## Тесты
 
-Some integration checks depend on local BIOS/OCB fixture files. Public CI builds the source targets without proprietary fixture data.
+Некоторые интеграционные проверки зависят от локальных fixture-файлов BIOS/OCB. Публичный CI собирает исходные цели без проприетарных fixture-данных.
 
 ```powershell
 cmake -S . -B build-test -DOCB_BUILD_APP=ON -DOCB_BUILD_TESTS=ON
@@ -132,11 +132,11 @@ cmake --build build-test --config Release --parallel
 ctest --test-dir build-test -C Release --output-on-failure
 ```
 
-## Third-party Sources
+## Сторонние исходники
 
-The repository includes selected source fragments from:
+Репозиторий включает выбранные фрагменты исходников из:
 
-- [UEFITool](https://github.com/LongSoft/UEFITool), BSD-style license.
+- [UEFITool](https://github.com/LongSoft/UEFITool), лицензия в стиле BSD.
 - [Universal IFR Extractor](https://github.com/donovan6000/Universal-IFR-Extractor), GPLv3.
 
-Because Universal IFR Extractor is integrated from GPLv3 sources, this project is distributed under `GPL-3.0-only`.
+Поскольку Universal IFR Extractor интегрирован из исходников GPLv3, проект распространяется под `GPL-3.0-only`.

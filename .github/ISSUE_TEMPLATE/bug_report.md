@@ -24,7 +24,6 @@ assignees: ""
 
 - ОС:
 - Компилятор:
-- Версия Qt:
 - Версия или commit OCB Studio Native:
 
 ## Контекст firmware/профиля
