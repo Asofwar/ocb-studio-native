@@ -1,0 +1,159 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to package, for example v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-release:
+    name: Prepare GitHub release
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      safe_tag: ${{ steps.version.outputs.safe_tag }}
+      version: ${{ steps.version.outputs.version }}
+      sha: ${{ steps.version.outputs.sha }}
+      date: ${{ steps.version.outputs.date }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+
+      - name: Prepare version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.inputs.tag || github.ref_name }}"
+          $version = $tag -replace '^v', ''
+          $safeTag = $tag -replace '[^0-9A-Za-z_.-]', '-'
+          $sha = git rev-parse --short=12 HEAD
+          $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "safe_tag=$safeTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "sha=$sha" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "date=$date" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" \
+              --title "OCB Studio Native $tag" \
+              --notes-file CHANGELOG.md \
+              --latest
+          else
+            gh release create "$tag" \
+              --title "OCB Studio Native $tag" \
+              --notes-file CHANGELOG.md \
+              --latest
+          fi
+
+  package:
+    name: Package ${{ matrix.name }}
+    needs: prepare-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            artifact_os: windows
+            archive_ext: zip
+          - name: Linux
+            os: ubuntu-latest
+            artifact_os: linux
+            archive_ext: tar.gz
+          - name: macOS
+            os: macos-latest
+            artifact_os: macos
+            archive_ext: tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare-release.outputs.tag }}
+
+      - name: Install Linux GUI build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorg-dev libglu1-mesa-dev pkg-config
+
+      - name: Configure
+        shell: pwsh
+        run: |
+          cmake -S . -B build-release `
+            "-DCMAKE_BUILD_TYPE=Release" `
+            "-DOCB_BUILD_APP=ON" `
+            "-DOCB_BUILD_TESTS=OFF" `
+            "-DOCB_BUILD_VERSION=${{ needs.prepare-release.outputs.version }}" `
+            "-DOCB_BUILD_GIT_SHA=${{ needs.prepare-release.outputs.sha }}" `
+            "-DOCB_BUILD_DATE=${{ needs.prepare-release.outputs.date }}"
+
+      - name: Build
+        run: cmake --build build-release --config Release --parallel
+
+      - name: Prepare package directory
+        shell: pwsh
+        run: |
+          $dist = Join-Path $env:RUNNER_TEMP "ocb-studio-native-${{ matrix.artifact_os }}"
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+
+          if ("${{ runner.os }}" -eq "Windows") {
+            Copy-Item "build-release\app\Release\ocb_studio.exe" $dist
+          } else {
+            Copy-Item "build-release/app/ocb_studio" $dist
+          }
+
+          $info = @(
+            "OCB Studio Native"
+            "Version: ${{ needs.prepare-release.outputs.version }}"
+            "Tag: ${{ needs.prepare-release.outputs.tag }}"
+            "Commit: ${{ needs.prepare-release.outputs.sha }}"
+            "Build date UTC: ${{ needs.prepare-release.outputs.date }}"
+            "Workflow run: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            "Repository: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY"
+          )
+          $info | Set-Content -Path (Join-Path $dist "release-info.txt") -Encoding utf8
+          Copy-Item CHANGELOG.md (Join-Path $dist "release-notes.md")
+
+      - name: Create archive
+        shell: pwsh
+        run: |
+          $distName = "ocb-studio-native-${{ matrix.artifact_os }}"
+          $archive = "ocb-studio-native-${{ matrix.artifact_os }}-${{ needs.prepare-release.outputs.safe_tag }}.${{ matrix.archive_ext }}"
+          if ("${{ matrix.archive_ext }}" -eq "zip") {
+            Compress-Archive -Path "$env:RUNNER_TEMP\$distName\*" -DestinationPath $archive -Force
+          } else {
+            tar -czf $archive -C $env:RUNNER_TEMP $distName
+          }
+
+      - name: Upload release asset
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload `
+            "${{ needs.prepare-release.outputs.tag }}" `
+            "ocb-studio-native-${{ matrix.artifact_os }}-${{ needs.prepare-release.outputs.safe_tag }}.${{ matrix.archive_ext }}" `
+            --clobber
