@@ -408,6 +408,7 @@ void assignString(std::vector<std::string>& strings, std::uint32_t& currentId, s
     IfrQuestion question;
     question.kind = kind;
     question.prompt = stringById(stringPackage, view.u16(opOffset + 2));
+    question.help = stringById(stringPackage, view.u16(opOffset + 4));
     question.questionId = view.u16(opOffset + 6);
     question.varStoreId = varStoreId;
     question.varStoreName = store == varStores.end() ? std::string{} : store->second;

@@ -35,6 +35,7 @@ std::vector<OcbField> IfrFieldMapper::mapQuestions(
 
         OcbField field;
         field.prompt = question.prompt;
+        field.help = question.help;
         field.kind = mapKind(question.kind);
         field.varStore = question.varStoreName;
         field.varOffset = question.varOffset;

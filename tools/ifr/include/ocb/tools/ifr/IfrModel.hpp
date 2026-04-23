@@ -19,6 +19,7 @@ struct IfrOption {
 struct IfrQuestion {
     IfrQuestionKind kind{IfrQuestionKind::Numeric};
     std::string prompt;
+    std::string help;
     std::uint32_t questionId{};
     std::uint32_t varStoreId{};
     std::string varStoreName;

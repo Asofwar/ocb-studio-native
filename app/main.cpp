@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <array>
 #include <charconv>
+#include <cctype>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -230,6 +231,14 @@ void printHelp(std::ostream& out) {
     return value;
 }
 
+[[nodiscard]] std::optional<std::uint64_t> tryParseUnsigned(std::string_view text) {
+    try {
+        return parseUnsigned(text);
+    } catch (const std::exception&) {
+        return std::nullopt;
+    }
+}
+
 [[nodiscard]] const ocb::core::Preset* findBuiltinPreset(std::string_view name) {
     const auto& presets = ocb::core::builtinPresets();
     const auto found = std::find_if(presets.begin(), presets.end(), [&](const ocb::core::Preset& preset) {
@@ -310,6 +319,117 @@ void setStatus(GuiState& state, std::string message) {
 
 void setError(GuiState& state, const std::exception& error) {
     state.error = error.what();
+}
+
+[[nodiscard]] const ocb::core::OcbOption* optionForValue(
+    const ocb::core::OcbField& field,
+    std::uint64_t value) {
+    const auto found = std::find_if(field.options.begin(), field.options.end(), [&](const auto& option) {
+        return option.value == value;
+    });
+    return found == field.options.end() ? nullptr : &*found;
+}
+
+[[nodiscard]] std::string formatValue(const ocb::core::OcbField& field, std::uint64_t value) {
+    std::string text = std::to_string(value);
+    if (const auto* option = optionForValue(field, value); option != nullptr && !option->label.empty()) {
+        text += " = " + option->label;
+    }
+    return text;
+}
+
+[[nodiscard]] std::string formatOptionsPreview(const ocb::core::OcbField& field) {
+    if (field.options.empty()) {
+        return field.kind == ocb::core::FieldKind::OneOf ? "No IFR options" : "Numeric";
+    }
+
+    std::string text;
+    const auto limit = std::min<std::size_t>(field.options.size(), 4);
+    for (std::size_t i = 0; i < limit; ++i) {
+        if (!text.empty()) {
+            text += ", ";
+        }
+        text += std::to_string(field.options[i].value);
+        if (!field.options[i].label.empty()) {
+            text += "=" + field.options[i].label;
+        }
+    }
+    if (field.options.size() > limit) {
+        text += ", ...";
+    }
+    return text;
+}
+
+[[nodiscard]] std::string lowerAscii(std::string_view text) {
+    std::string result;
+    result.reserve(text.size());
+    for (const auto ch : text) {
+        result.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(ch))));
+    }
+    return result;
+}
+
+[[nodiscard]] bool containsAny(std::string_view text, std::initializer_list<std::string_view> needles) {
+    const auto lowered = lowerAscii(text);
+    return std::any_of(needles.begin(), needles.end(), [&](std::string_view needle) {
+        return lowered.find(needle) != std::string::npos;
+    });
+}
+
+[[nodiscard]] std::string fieldGuidance(const ocb::core::OcbField& field) {
+    if (!field.help.empty()) {
+        return field.help;
+    }
+
+    const auto& prompt = field.prompt;
+    if (containsAny(prompt, {"avx"})) {
+        return "Настройки AVX влияют на частоты и поведение процессора под AVX-нагрузкой. Обычно больший offset снижает частоту в тяжелых AVX-задачах, уменьшая нагрев и риск нестабильности.";
+    }
+    if (containsAny(prompt, {"cep"})) {
+        return "CEP (Current Excursion Protection) контролирует защитное поведение CPU при просадках напряжения и всплесках тока. Отключение может помочь разгону/undervolt, но повышает риск нестабильности и некорректного поведения под нагрузкой.";
+    }
+    if (containsAny(prompt, {"icc", "current limit"})) {
+        return "Лимит тока ограничивает максимальный ток, который CPU может запросить у VRM. Более высокие значения уменьшают throttling, но повышают нагрузку на питание и температуру.";
+    }
+    if (containsAny(prompt, {"power limit", "pl1", "pl2", "long duration", "short duration"})) {
+        return "Лимит мощности задает, сколько ватт процессор может потреблять в длительной или кратковременной нагрузке. Больше - выше производительность и нагрев; меньше - тише и безопаснее.";
+    }
+    if (containsAny(prompt, {"lite load", "loadline", "load line", "ac loadline", "dc loadline"})) {
+        return "Loadline влияет на расчет и поведение напряжения под нагрузкой. Меньшие/более агрессивные значения могут снизить напряжение и температуру, но требуют проверки стабильности.";
+    }
+    if (containsAny(prompt, {"ratio", "multiplier", "turbo", "e-core", "p-core", "ring"})) {
+        return "Ratio/множитель влияет на частоту соответствующего домена CPU. Более высокое значение повышает производительность, но требует больше напряжения и охлаждения.";
+    }
+    if (containsAny(prompt, {"boost"})) {
+        return "Boost-настройки обычно включают автоматическое повышение частот. Это может дать производительность ценой температуры, напряжения и потребления.";
+    }
+    if (containsAny(prompt, {"boot option"})) {
+        return "Boot Option задает порядок загрузки. Для разгона CPU обычно не требуется менять эти поля.";
+    }
+    if (field.kind == ocb::core::FieldKind::OneOf) {
+        return "Поле с фиксированным набором вариантов из BIOS IFR. Выбирайте вариант по описанию ниже; если назначение неизвестно, безопаснее оставить текущее значение.";
+    }
+    return "Числовое поле BIOS Setup. Меняйте только если понимаете диапазон и влияние параметра; перед экспериментами сохраните исходный профиль.";
+}
+
+[[nodiscard]] std::string optionGuidance(const ocb::core::OcbField& field, const ocb::core::OcbOption& option) {
+    const auto label = lowerAscii(option.label);
+    if (label.find("auto") != std::string::npos || option.label == "Авто") {
+        return "BIOS сам выбирает значение по своей логике. Обычно это самый безопасный вариант для неизвестного параметра.";
+    }
+    if (label.find("enabled") != std::string::npos || option.label == "Включено") {
+        return "Включает функцию. Эффект зависит от поля; для защитных функций это обычно безопаснее, для boost/разгона может повысить нагрев.";
+    }
+    if (label.find("disabled") != std::string::npos || option.label == "Отключено") {
+        return "Отключает функцию. Для защитных функций это может повысить риск нестабильности; для boost-функций обычно снижает агрессивность.";
+    }
+    if (containsAny(field.prompt, {"lite load"}) && option.value > 0) {
+        return "Режим CPU Lite Load. Обычно меньшие режимы дают меньше напряжения и температуры, но требуют стресс-теста.";
+    }
+    if (containsAny(field.prompt, {"ratio", "multiplier", "ring", "e-core", "p-core"})) {
+        return "Значение связано с множителем/частотой. Чем выше, тем выше потенциальная производительность и требования к стабильности.";
+    }
+    return "Описание эффекта не найдено в IFR. Сравните с текущим значением и документацией BIOS/платы перед применением.";
 }
 
 void listPresets() {
@@ -577,13 +697,14 @@ void renderPresets(GuiState& state) {
 
         int index = 1;
         for (const auto& builtin : ocb::core::builtinPresets()) {
-            if (ImGui::Selectable(builtin.name.c_str(), state.selectedPreset == index)) {
+            const auto label = builtin.name + "##builtin-preset-" + std::to_string(index);
+            if (ImGui::Selectable(label.c_str(), state.selectedPreset == index)) {
                 state.selectedPreset = index;
             }
             ++index;
         }
         for (const auto& imported : state.importedPresets) {
-            const auto label = imported.name + " (file)";
+            const auto label = imported.name + " (file)##imported-preset-" + std::to_string(index);
             if (ImGui::Selectable(label.c_str(), state.selectedPreset == index)) {
                 state.selectedPreset = index;
             }
@@ -672,12 +793,13 @@ void renderFields(GuiState& state) {
         ? state.controller.catalog().fields()
         : state.controller.catalog().search(bufferText(state.search));
 
-    if (ImGui::BeginTable("fields", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY, ImVec2(0, 360))) {
+    if (ImGui::BeginTable("fields", 7, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY, ImVec2(0, 360))) {
         ImGui::TableSetupColumn("Prompt");
         ImGui::TableSetupColumn("Store");
         ImGui::TableSetupColumn("Offset");
         ImGui::TableSetupColumn("Bits");
         ImGui::TableSetupColumn("Current");
+        ImGui::TableSetupColumn("Options");
         ImGui::TableSetupColumn("ID");
         ImGui::TableHeadersRow();
 
@@ -686,7 +808,8 @@ void renderFields(GuiState& state) {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             const bool selected = state.selectedFieldId == id;
-            if (ImGui::Selectable(field.prompt.c_str(), selected, ImGuiSelectableFlags_SpanAllColumns)) {
+            const auto label = field.prompt + "##field-" + id;
+            if (ImGui::Selectable(label.c_str(), selected, ImGuiSelectableFlags_SpanAllColumns)) {
                 state.selectedFieldId = id;
                 if (state.controller.hasProfile()) {
                     try {
@@ -705,7 +828,9 @@ void renderFields(GuiState& state) {
             ImGui::TableSetColumnIndex(4);
             if (state.controller.hasProfile()) {
                 try {
-                    ImGui::Text("%llu", static_cast<unsigned long long>(state.controller.profile().read(field)));
+                    const auto value = state.controller.profile().read(field);
+                    const auto text = formatValue(field, value);
+                    ImGui::TextUnformatted(text.c_str());
                 } catch (const std::exception&) {
                     ImGui::TextUnformatted("-");
                 }
@@ -713,6 +838,9 @@ void renderFields(GuiState& state) {
                 ImGui::TextUnformatted("-");
             }
             ImGui::TableSetColumnIndex(5);
+            const auto optionsPreview = formatOptionsPreview(field);
+            ImGui::TextUnformatted(optionsPreview.c_str());
+            ImGui::TableSetColumnIndex(6);
             ImGui::TextUnformatted(id.c_str());
         }
         ImGui::EndTable();
@@ -721,7 +849,30 @@ void renderFields(GuiState& state) {
     const auto* selected = state.controller.catalog().findById(state.selectedFieldId);
     if (selected != nullptr) {
         ImGui::Text("Selected: %s", selected->prompt.c_str());
-        ImGui::InputText("Value", state.value.data(), state.value.size());
+        if (!selected->options.empty()) {
+            const auto parsedValue = tryParseUnsigned(bufferText(state.value));
+            const auto currentValue = parsedValue.value_or(0);
+            const auto* currentOption = parsedValue.has_value() ? optionForValue(*selected, currentValue) : nullptr;
+            const auto preview = currentOption == nullptr
+                ? bufferText(state.value)
+                : formatValue(*selected, currentValue);
+            if (ImGui::BeginCombo("Value", preview.c_str())) {
+                for (const auto& option : selected->options) {
+                    const auto optionLabel = std::to_string(option.value) + " = " + option.label
+                        + "##value-option-" + std::to_string(option.value);
+                    const bool isSelected = option.value == currentValue;
+                    if (ImGui::Selectable(optionLabel.c_str(), isSelected)) {
+                        setBuffer(state.value, std::to_string(option.value));
+                    }
+                    if (isSelected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        } else {
+            ImGui::InputText("Value", state.value.data(), state.value.size());
+        }
         ImGui::SameLine();
         ImGui::BeginDisabled(!state.controller.hasProfile());
         if (ImGui::Button("Write")) {
@@ -733,6 +884,27 @@ void renderFields(GuiState& state) {
             }
         }
         ImGui::EndDisabled();
+
+        if (!selected->options.empty()) {
+            ImGui::Spacing();
+            ImGui::TextUnformatted("What this affects:");
+            ImGui::TextWrapped("%s", fieldGuidance(*selected).c_str());
+            ImGui::Spacing();
+            ImGui::TextUnformatted("Available values:");
+            for (const auto& option : selected->options) {
+                ImGui::BulletText("%llu = %s",
+                    static_cast<unsigned long long>(option.value),
+                    option.label.empty() ? "(no description)" : option.label.c_str());
+                ImGui::Indent();
+                ImGui::TextWrapped("%s", optionGuidance(*selected, option).c_str());
+                ImGui::Unindent();
+            }
+        } else {
+            ImGui::Spacing();
+            ImGui::TextUnformatted("What this affects:");
+            ImGui::TextWrapped("%s", fieldGuidance(*selected).c_str());
+            ImGui::TextUnformatted("Numeric field: enter a non-negative integer value.");
+        }
     }
 }
 

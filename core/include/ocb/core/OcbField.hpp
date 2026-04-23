@@ -28,6 +28,7 @@ struct OcbField {
     std::string questionId;
     std::uint32_t ifrLine{};
     std::vector<OcbOption> options;
+    std::string help;
 
     [[nodiscard]] std::string id() const;
     [[nodiscard]] std::size_t fileOffset() const;
