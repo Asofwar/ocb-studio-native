@@ -134,3 +134,198 @@ jobs:
             "$releaseInfo\release-info.txt" `
             "$releaseInfo\release-notes.md" `
             --clobber
+
+  package-linux-release:
+    name: Package Linux release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Prepare version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          $version = $tag -replace '^v', ''
+          $safeTag = $tag -replace '[^0-9A-Za-z_.-]', '-'
+          $sha = git rev-parse --short=12 HEAD
+          $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "safe_tag=$safeTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "sha=$sha" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "date=$date" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Install Linux GUI build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorg-dev libglu1-mesa-dev pkg-config
+
+      - name: Configure
+        run: |
+          cmake -S . -B build-release \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DOCB_BUILD_APP=ON \
+            -DOCB_BUILD_TESTS=OFF \
+            -DOCB_BUILD_VERSION="${{ steps.version.outputs.version }}" \
+            -DOCB_BUILD_GIT_SHA="${{ steps.version.outputs.sha }}" \
+            -DOCB_BUILD_DATE="${{ steps.version.outputs.date }}"
+
+      - name: Build
+        run: cmake --build build-release --config Release --parallel
+
+      - name: Prepare release info
+        shell: pwsh
+        run: |
+          $releaseDir = Join-Path $env:RUNNER_TEMP "release-info"
+          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+
+          $tag = "${{ steps.version.outputs.tag }}"
+          $version = "${{ steps.version.outputs.version }}"
+          $sha = "${{ steps.version.outputs.sha }}"
+          $date = "${{ steps.version.outputs.date }}"
+
+          $info = @(
+            "OCB Studio Native"
+            "Version: $version"
+            "Tag: $tag"
+            "Commit: $sha"
+            "Build date UTC: $date"
+            "Workflow run: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            "Repository: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY"
+            "Runtime dependencies: Linux desktop OpenGL/X11 stack and system C/C++ runtime"
+          )
+          $info | Set-Content -Path "$releaseDir/release-info.txt" -Encoding utf8
+
+          $changelog = Get-Content -Raw -Encoding utf8 CHANGELOG.md
+          $escapedVersion = [regex]::Escape($version)
+          $escapedTag = [regex]::Escape($tag)
+          $section = [regex]::Match($changelog, "(?ms)^## \[$escapedVersion\].*?(?=^## \[|\z)").Value
+          if ([string]::IsNullOrWhiteSpace($section)) {
+            $section = [regex]::Match($changelog, "(?ms)^## \[$escapedTag\].*?(?=^## \[|\z)").Value
+          }
+          if ([string]::IsNullOrWhiteSpace($section)) {
+            $section = "## $tag`n`nNo dedicated CHANGELOG.md section was found for this tag."
+          }
+          $section | Set-Content -Path "$releaseDir/release-notes.md" -Encoding utf8
+
+      - name: Package
+        run: |
+          dist="$RUNNER_TEMP/ocb-studio-native-linux"
+          mkdir -p "$dist"
+          cp build-release/app/ocb_studio "$dist/"
+          cp "$RUNNER_TEMP/release-info/release-info.txt" "$dist/"
+          cp "$RUNNER_TEMP/release-info/release-notes.md" "$dist/"
+          tar -czf "ocb-studio-native-linux-${{ steps.version.outputs.safe_tag }}.tar.gz" -C "$RUNNER_TEMP" "ocb-studio-native-linux"
+
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload \
+            "${{ steps.version.outputs.tag }}" \
+            "ocb-studio-native-linux-${{ steps.version.outputs.safe_tag }}.tar.gz" \
+            --clobber
+
+  package-macos-release:
+    name: Package macOS release
+    runs-on: macos-latest
+    if: github.event_name == 'release'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Prepare version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          $version = $tag -replace '^v', ''
+          $safeTag = $tag -replace '[^0-9A-Za-z_.-]', '-'
+          $sha = git rev-parse --short=12 HEAD
+          $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "safe_tag=$safeTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "sha=$sha" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "date=$date" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Configure
+        run: |
+          cmake -S . -B build-release \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DOCB_BUILD_APP=ON \
+            -DOCB_BUILD_TESTS=OFF \
+            -DOCB_BUILD_VERSION="${{ steps.version.outputs.version }}" \
+            -DOCB_BUILD_GIT_SHA="${{ steps.version.outputs.sha }}" \
+            -DOCB_BUILD_DATE="${{ steps.version.outputs.date }}"
+
+      - name: Build
+        run: cmake --build build-release --config Release --parallel
+
+      - name: Prepare release info
+        shell: pwsh
+        run: |
+          $releaseDir = Join-Path $env:RUNNER_TEMP "release-info"
+          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+
+          $tag = "${{ steps.version.outputs.tag }}"
+          $version = "${{ steps.version.outputs.version }}"
+          $sha = "${{ steps.version.outputs.sha }}"
+          $date = "${{ steps.version.outputs.date }}"
+
+          $info = @(
+            "OCB Studio Native"
+            "Version: $version"
+            "Tag: $tag"
+            "Commit: $sha"
+            "Build date UTC: $date"
+            "Workflow run: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            "Repository: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY"
+            "Runtime dependencies: macOS OpenGL framework and system C/C++ runtime"
+          )
+          $info | Set-Content -Path "$releaseDir/release-info.txt" -Encoding utf8
+
+          $changelog = Get-Content -Raw -Encoding utf8 CHANGELOG.md
+          $escapedVersion = [regex]::Escape($version)
+          $escapedTag = [regex]::Escape($tag)
+          $section = [regex]::Match($changelog, "(?ms)^## \[$escapedVersion\].*?(?=^## \[|\z)").Value
+          if ([string]::IsNullOrWhiteSpace($section)) {
+            $section = [regex]::Match($changelog, "(?ms)^## \[$escapedTag\].*?(?=^## \[|\z)").Value
+          }
+          if ([string]::IsNullOrWhiteSpace($section)) {
+            $section = "## $tag`n`nNo dedicated CHANGELOG.md section was found for this tag."
+          }
+          $section | Set-Content -Path "$releaseDir/release-notes.md" -Encoding utf8
+
+      - name: Package
+        run: |
+          dist="$RUNNER_TEMP/ocb-studio-native-macos"
+          mkdir -p "$dist"
+          cp build-release/app/ocb_studio "$dist/"
+          cp "$RUNNER_TEMP/release-info/release-info.txt" "$dist/"
+          cp "$RUNNER_TEMP/release-info/release-notes.md" "$dist/"
+          tar -czf "ocb-studio-native-macos-${{ steps.version.outputs.safe_tag }}.tar.gz" -C "$RUNNER_TEMP" "ocb-studio-native-macos"
+
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload \
+            "${{ steps.version.outputs.tag }}" \
+            "ocb-studio-native-macos-${{ steps.version.outputs.safe_tag }}.tar.gz" \
+            --clobber
