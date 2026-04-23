@@ -11,4 +11,3 @@ CMakeLists.txt text eol=crlf
 *.yaml text eol=lf
 
 tools/uefitool/upstream/** linguist-vendored
-tools/ifr/upstream-universal/** linguist-vendored
