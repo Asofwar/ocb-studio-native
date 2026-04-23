@@ -90,10 +90,116 @@ void putAscii(std::vector<std::uint8_t>& bytes, std::size_t offset, std::string_
     std::copy(value.begin(), value.end(), bytes.begin() + static_cast<std::ptrdiff_t>(offset));
 }
 
+void appendU8(std::vector<std::uint8_t>& bytes, std::uint8_t value) {
+    bytes.push_back(value);
+}
+
+void appendU16(std::vector<std::uint8_t>& bytes, std::uint16_t value) {
+    bytes.push_back(static_cast<std::uint8_t>(value & 0xFF));
+    bytes.push_back(static_cast<std::uint8_t>((value >> 8) & 0xFF));
+}
+
+void appendU24(std::vector<std::uint8_t>& bytes, std::uint32_t value) {
+    bytes.push_back(static_cast<std::uint8_t>(value & 0xFF));
+    bytes.push_back(static_cast<std::uint8_t>((value >> 8) & 0xFF));
+    bytes.push_back(static_cast<std::uint8_t>((value >> 16) & 0xFF));
+}
+
+void appendU32(std::vector<std::uint8_t>& bytes, std::uint32_t value) {
+    appendU16(bytes, static_cast<std::uint16_t>(value & 0xFFFF));
+    appendU16(bytes, static_cast<std::uint16_t>((value >> 16) & 0xFFFF));
+}
+
+void appendAsciiNull(std::vector<std::uint8_t>& bytes, std::string_view value) {
+    bytes.insert(bytes.end(), value.begin(), value.end());
+    bytes.push_back(0);
+}
+
+void appendUcs2Null(std::vector<std::uint8_t>& bytes, std::string_view value) {
+    for (const auto ch : value) {
+        appendU16(bytes, static_cast<std::uint8_t>(ch));
+    }
+    appendU16(bytes, 0);
+}
+
+void appendPackageHeader(std::vector<std::uint8_t>& bytes, std::uint32_t length, std::uint8_t type) {
+    appendU24(bytes, length);
+    appendU8(bytes, type);
+}
+
 std::vector<std::uint8_t> syntheticProfileBytes() {
     std::vector<std::uint8_t> bytes(0x3000, 0);
     putAscii(bytes, 0, "$MOS$");
     putAscii(bytes, 0x400, "$OCI$");
+    return bytes;
+}
+
+std::vector<std::uint8_t> syntheticHiiPackageList() {
+    std::vector<std::uint8_t> stringPackage;
+    appendPackageHeader(stringPackage, 0, 0x04);
+    const auto headerSize = static_cast<std::uint32_t>(4 + 4 + 4 + 32 + 2 + 6);
+    appendU32(stringPackage, headerSize);
+    appendU32(stringPackage, headerSize);
+    for (int i = 0; i < 16; ++i) {
+        appendU16(stringPackage, 0);
+    }
+    appendU16(stringPackage, 0);
+    appendAsciiNull(stringPackage, "en-US");
+    appendU8(stringPackage, 0x14);
+    appendUcs2Null(stringPackage, "Synthetic Question");
+    appendU8(stringPackage, 0x14);
+    appendUcs2Null(stringPackage, "Disabled");
+    appendU8(stringPackage, 0x14);
+    appendUcs2Null(stringPackage, "Enabled");
+    appendU8(stringPackage, 0x00);
+    const auto stringPackageLength = static_cast<std::uint32_t>(stringPackage.size());
+    stringPackage[0] = static_cast<std::uint8_t>(stringPackageLength & 0xFF);
+    stringPackage[1] = static_cast<std::uint8_t>((stringPackageLength >> 8) & 0xFF);
+    stringPackage[2] = static_cast<std::uint8_t>((stringPackageLength >> 16) & 0xFF);
+
+    std::vector<std::uint8_t> formPackage;
+    appendPackageHeader(formPackage, 0, 0x02);
+    appendU8(formPackage, 0x24);
+    appendU8(formPackage, 28);
+    for (int i = 0; i < 16; ++i) {
+        appendU8(formPackage, 0);
+    }
+    appendU16(formPackage, 1);
+    appendU16(formPackage, 0x1000);
+    appendAsciiNull(formPackage, "Setup");
+    appendU8(formPackage, 0x05);
+    appendU8(formPackage, 0x80 | 14);
+    appendU16(formPackage, 1);
+    appendU16(formPackage, 0);
+    appendU16(formPackage, 0x1234);
+    appendU16(formPackage, 1);
+    appendU16(formPackage, 0x00F6);
+    appendU16(formPackage, 0);
+    appendU8(formPackage, 0x09);
+    appendU8(formPackage, 7);
+    appendU16(formPackage, 2);
+    appendU8(formPackage, 0);
+    appendU8(formPackage, 0);
+    appendU8(formPackage, 0);
+    appendU8(formPackage, 0x09);
+    appendU8(formPackage, 7);
+    appendU16(formPackage, 3);
+    appendU8(formPackage, 0);
+    appendU8(formPackage, 0);
+    appendU8(formPackage, 1);
+    appendU8(formPackage, 0x29);
+    appendU8(formPackage, 2);
+    const auto formPackageLength = static_cast<std::uint32_t>(formPackage.size());
+    formPackage[0] = static_cast<std::uint8_t>(formPackageLength & 0xFF);
+    formPackage[1] = static_cast<std::uint8_t>((formPackageLength >> 8) & 0xFF);
+    formPackage[2] = static_cast<std::uint8_t>((formPackageLength >> 16) & 0xFF);
+
+    std::vector<std::uint8_t> bytes(16, 0);
+    const auto listLength = static_cast<std::uint32_t>(20 + stringPackage.size() + formPackage.size() + 4);
+    appendU32(bytes, listLength);
+    bytes.insert(bytes.end(), stringPackage.begin(), stringPackage.end());
+    bytes.insert(bytes.end(), formPackage.begin(), formPackage.end());
+    appendPackageHeader(bytes, 4, 0xDF);
     return bytes;
 }
 
@@ -363,6 +469,23 @@ void testNativeIfrExtractorReadsSetupPe32() {
     expect(!liteLoad->options.empty(), "У нативного CPU Lite Load должны быть опции");
 }
 
+void testNativeIfrExtractorReadsSyntheticHii() {
+    const auto questions = ocb::tools::ifr::NativeIfrExtractor{}.extractQuestions(syntheticHiiPackageList());
+    expect(questions.size() == 1, "Synthetic HII package list should produce one IFR question");
+
+    const auto& question = questions.front();
+    expect(question.kind == ocb::tools::ifr::IfrQuestionKind::OneOf, "Synthetic question should be OneOf");
+    expect(question.prompt == "Synthetic Question", "Synthetic question prompt should come from UCS-2 strings");
+    expect(question.questionId == 0x1234, "Synthetic question id should be parsed");
+    expect(question.varStoreId == 1, "Synthetic VarStore id should be parsed");
+    expect(question.varStoreName == "Setup", "Synthetic VarStore name should be parsed");
+    expect(question.varOffset == 0x00F6, "Synthetic VarOffset should be parsed");
+    expect(question.sizeBits == 8, "Synthetic OneOf size should be parsed");
+    expect(question.options.size() == 2, "Synthetic OneOf options should be parsed");
+    expect(question.options[0].value == 0 && question.options[0].label == "Disabled", "Synthetic first option should match");
+    expect(question.options[1].value == 1 && question.options[1].label == "Enabled", "Synthetic second option should match");
+}
+
 } // namespace
 
 int main() {
@@ -384,6 +507,7 @@ int main() {
         testIfrQuestionsMapIntoFieldCatalog();
         testUefiExtractorFindsSetupPe32();
         testNativeIfrExtractorReadsSetupPe32();
+        testNativeIfrExtractorReadsSyntheticHii();
     } catch (const std::exception& error) {
         std::cerr << "ОШИБКА: " << error.what() << '\n';
         return 1;
