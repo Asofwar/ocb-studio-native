@@ -448,3 +448,83 @@ The current status is:
 - current-limit-only BIOS-save reproduction is already working
 - the unresolved part is now likely a smaller set of hidden dependent fields for specific settings such as Lite Load, CEP, and possibly PL1/PL2 mirrors
 
+## Continuation log (2026-04-24, local model run)
+
+### 1) Baseline re-checks completed
+
+- Confirmed hashes still match:
+  - `D:\14900K\original\MsOcFile.ocb` -> `E5E2CE9DCC263C3CF5B5253664124FD6CF82DE306A1FB70DBD1902FDFC50D0E8`
+  - `D:\14900K\try_02_conservative_sum_comp\MsOcFile.ocb` -> `5B26264366D120D714AB03346DC6D022DD7BF098720F6AC39078BB8564744248`
+  - `D:\14900K\_repro_502.ocb` -> `0CF0FA469E735450BD3B99F204D432A4B4107EAAA98A201C63A45EEA2EAC2375`
+
+- Deterministic replay of `502` was re-verified from current app binary:
+  - `OCB_EXPORT_TIMESTAMP=20260423204311`
+  - output hash: `0CF0FA469E735450BD3B99F204D432A4B4107EAAA98A201C63A45EEA2EAC2375`
+
+### 2) Isolation matrix files are present and hashed
+
+Directory `E:\ocb_isolation_matrix` contains all expected cases (`00..11`) with unique hashes.
+
+### 3) Byte-level diffs for isolation matrix were recomputed (vs original)
+
+All cases mutate service metadata bytes plus their target field bytes.
+
+Common service deltas seen in almost all files:
+
+- `0011: D3 -> 2E` (or `52` for `00_repro_current_502`)
+- `2D3C: 02 -> 00`
+- `2D3E: 53 -> 00`
+- `2D40: 19 -> 22`
+- `2D7F: 58 -> D1`
+- `2E73..2E78` timestamp digits changed
+- `2E8A: A0 -> 53`
+
+Target deltas by case (highlights):
+
+- `00_repro_current_502`: `0F49: 33 -> F6` (+ `2E26: 80 -> 00`)
+- `01_only_current_300`: `0F49: 33 -> 2C`
+- `02_only_pl1_210`: `15F9: C8 -> D2`
+- `03_only_pl2_250`: `1600: DC -> FA`
+- `04_only_liteload_control_1`: `0F82: 00 -> 01`
+- `05_only_liteload_20`: `0F83: 32 -> 14`
+- `06_only_ia_cep_0`: `1916: 01 -> 00`
+- `07_only_gt_cep_0`: `1917: 01 -> 00`
+- `08_liteload_pair_control1_mode20`: `0F82` + `0F83`
+- `09_cep_pair_both_0`: `1916` + `1917`
+- `10_power_triplet_300_210_250`: `0F49` + `15F9` + `1600`
+- `11_only_enhanced_turbo_1`: `0CD1: 02 -> 01`
+
+### 4) Additional field-state evidence gathered
+
+From `D:\14900K\original\MsOcFile.ocb`:
+
+- `PL1@0x15F9 = 200`
+- `PL2@0x1600 = 220`
+- `Current@0x0F49 = 51`
+- `LiteLoadControl@0x0F82 = 0`
+- `LiteLoad@0x0F83 = 50`
+- `IA_CEP_EN@0x1916 = 1`
+- `GT_CEP_EN@0x1917 = 1`
+- `IA_CEP_SUP@0x0FD9 = 1`
+- `GT_CEP_SUP@0x0FDA = 0`
+- `IA_CEP_14@0x0FDB = 1`
+- `GT_CEP_14@0x0FDC = 0`
+
+From `D:\14900K\MsOcFile.ocb` (user target-like state):
+
+- `PL1=210`, `PL2=250`, `Current=44`, `LiteLoadControl=1`, `LiteLoad=20`
+- `IA_CEP_EN=0`, `GT_CEP_EN=0`
+- `IA/GT support bytes remained 1/0 and 1/0`
+
+This strengthens hypothesis that CEP support/enable interaction may be constrained by additional rules not yet modeled.
+
+### 5) Test suite updates in progress
+
+`tests/OcbCoreTests.cpp` was updated to:
+
+- drop stale strict dependency on `try_02` equality,
+- add deterministic metadata tests under fixed `OCB_EXPORT_TIMESTAMP`,
+- add exact-byte replay test for known `_repro_502`.
+
+Current local run status: long-running during IFR-heavy test region; final pass/fail snapshot still needs one clean completed run capture.
+
